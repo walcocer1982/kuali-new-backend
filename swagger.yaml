@@ -3,7 +3,7 @@ info:
   description: "API Documentation"
   version: "1.0.0"
   title: "Kuali API"
-host: "localhost:5000"
+host: "localhost:3000"
 basePath: "/"
 schemes:
   - "http"
@@ -130,6 +130,15 @@ definitions:
         type: string
       sector:
         type: string
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+      deletedAt:
+        type: string
+        format: date-time
   CompanyInput:
     type: object
     required:
@@ -159,9 +168,18 @@ definitions:
       seniority:
         type: string
       status:
-        type: string
+        $ref: "#/definitions/LeadStatus"
       companyId:
         type: string
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+      deletedAt:
+        type: string
+        format: date-time
   LeadInput:
     type: object
     required:
@@ -195,6 +213,12 @@ definitions:
         type: string
       body:
         type: string
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
   TemplateInput:
     type: object
     required:
@@ -210,26 +234,46 @@ definitions:
     properties:
       id:
         type: string
-      name:
-        type: string
-      phone:
-        type: string
-      email:
-        type: string
       leadId:
         type: string
-      status:
+      templateId:
         type: string
+      status:
+        $ref: "#/definitions/ContactStatus"
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
   ContactInput:
     type: object
     required:
-      - email
+      - leadId
+      - templateId
     properties:
-      name:
-        type: string
-      phone:
-        type: string
-      email:
-        type: string
       leadId:
-        type: string 
+        type: string
+      templateId:
+        type: string
+      status:
+        $ref: "#/definitions/ContactStatus"
+  LeadStatus:
+    type: string
+    enum:
+      - NUEVO
+      - CONTACTADO
+      - INTERESADO
+      - CALIFICADO
+      - OPORTUNIDAD
+      - CERRADO
+      - DESCARTADO
+  ContactStatus:
+    type: string
+    enum:
+      - PENDIENTE
+      - ENVIADO
+      - ENTREGADO
+      - LEIDO
+      - RESPONDIDO
+      - FALLIDO 
