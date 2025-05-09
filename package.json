@@ -1,0 +1,21 @@
+{
+  "name": "kuali-api",
+  "version": "1.0.0",
+  "description": "API para gestionar compañías, leads, plantillas y contactos",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.7.0",
+    "express": "^4.17.1",
+    "js-yaml": "^4.1.0",
+    "swagger-jsdoc": "^6.0.0",
+    "swagger-ui-express": "^4.1.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "prisma": "^6.7.0"
+  }
+}
