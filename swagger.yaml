@@ -92,34 +92,34 @@ paths:
           description: "Plantilla creada"
           schema:
             $ref: "#/definitions/Template"
-  /contacts:
+  /contact-logs:
     get:
       tags:
-        - "Contacts"
-      summary: "Obtener listado de contactos"
+        - "Contact_Logs"
+      summary: "Obtener listado de registros de contacto"
       responses:
         200:
-          description: "Lista de contactos"
+          description: "Lista de registros de contacto"
           schema:
             type: array
             items:
-              $ref: "#/definitions/Contact"
+              $ref: "#/definitions/Contact_Log"
     post:
       tags:
-        - "Contacts"
-      summary: "Crear un contacto"
+        - "Contact_Logs"
+      summary: "Crear un registro de contacto"
       parameters:
         - in: "body"
           name: "body"
           description: "Datos del contacto"
           required: true
           schema:
-            $ref: "#/definitions/ContactInput"
+            $ref: "#/definitions/Contact_LogInput"
       responses:
         201:
           description: "Contacto creado"
           schema:
-            $ref: "#/definitions/Contact"
+            $ref: "#/definitions/Contact_Log"
 definitions:
   Company:
     type: object
@@ -213,6 +213,9 @@ definitions:
         type: string
       body:
         type: string
+      steps:
+        type: object
+        description: "Array de objetos con step, salesperson_response, client_response"
       createdAt:
         type: string
         format: date-time
@@ -229,7 +232,10 @@ definitions:
         type: string
       body:
         type: string
-  Contact:
+      steps:
+        type: object
+        description: "Array de objetos con step, salesperson_response, client_response"
+  Contact_Log:
     type: object
     properties:
       id:
@@ -238,15 +244,13 @@ definitions:
         type: string
       templateId:
         type: string
-      status:
-        $ref: "#/definitions/ContactStatus"
       createdAt:
         type: string
         format: date-time
       updatedAt:
         type: string
         format: date-time
-  ContactInput:
+  Contact_LogInput:
     type: object
     required:
       - leadId
@@ -256,8 +260,6 @@ definitions:
         type: string
       templateId:
         type: string
-      status:
-        $ref: "#/definitions/ContactStatus"
   LeadStatus:
     type: string
     enum:
