@@ -106,8 +106,8 @@ paths:
               $ref: "#/definitions/Contact_Log"
     post:
       tags:
-        - "Contacts"
-      summary: "Crear un contacto"
+        - "Contact_Logs"
+      summary: "Crear un registro de contacto"
       parameters:
         - in: "body"
           name: "body"
