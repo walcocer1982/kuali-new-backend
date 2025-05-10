@@ -10,28 +10,66 @@ exports.getAllTemplates = async (req, res) => {
   }
 };
 
-// Crear una nueva plantilla
+// Crear una nueva plantilla con validación de steps
 exports.createTemplate = async (req, res) => {
   try {
-    const newTemplate = await prisma.template.create({
-      data: req.body,
-    });
+    const { title, body, steps } = req.body;
+    // Validar que steps sea un array de objetos con llaves correctas
+    if (steps !== undefined) {
+      if (!Array.isArray(steps)) {
+        return res.status(400).json({ error: '`steps` debe ser un array.' });
+      }
+      steps.forEach((item, idx) => {
+        if (
+          typeof item.step !== 'string' ||
+          typeof item.salesperson_response !== 'string' ||
+          typeof item.client_response !== 'string'
+        ) {
+          throw new Error(`Paso inválido en índice ${idx}: formato no válido.`);
+        }
+      });
+    }
+    const data = { title, body };
+    if (steps !== undefined) data.steps = steps;
+
+    const newTemplate = await prisma.template.create({ data });
     res.status(201).json(newTemplate);
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear la plantilla' });
+    res.status(500).json({ error: 'Error al crear la plantilla', details: error.message });
   }
 };
 
-// Actualizar una plantilla
+// Actualizar una plantilla con validación de steps
 exports.updateTemplate = async (req, res) => {
   try {
+    const { title, body, steps } = req.body;
+    // Validar steps si viene presente
+    if (steps !== undefined) {
+      if (!Array.isArray(steps)) {
+        return res.status(400).json({ error: '`steps` debe ser un array.' });
+      }
+      steps.forEach((item, idx) => {
+        if (
+          typeof item.step !== 'string' ||
+          typeof item.salesperson_response !== 'string' ||
+          typeof item.client_response !== 'string'
+        ) {
+          throw new Error(`Paso inválido en índice ${idx}: formato no válido.`);
+        }
+      });
+    }
+    const data = {};
+    if (title !== undefined) data.title = title;
+    if (body !== undefined) data.body = body;
+    if (steps !== undefined) data.steps = steps;
+
     const updatedTemplate = await prisma.template.update({
       where: { id: req.params.id },
-      data: req.body,
+      data,
     });
     res.json(updatedTemplate);
   } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar la plantilla' });
+    res.status(500).json({ error: 'Error al actualizar la plantilla', details: error.message });
   }
 };
 
