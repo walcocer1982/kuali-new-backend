@@ -42,10 +42,12 @@ model Template {
   id         String    @id @default(uuid())
   title      String
   body       String
-  steps      Json         // array de objetos { step, salesperson_response, client_response }
+  steps      Json?     @map("steps") @db.JsonB    // array de objetos { step, salesperson_response, client_response }
   contactLogs Contact_Log[]
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+
+  @@map("Template")
 }
 
 model Contact_Log {
