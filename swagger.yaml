@@ -3,10 +3,10 @@ info:
   description: "API Documentation"
   version: "1.0.0"
   title: "Kuali API"
-host: "localhost:3000"
+host: "kuali-new-backend.onrender.com"
 basePath: "/"
 schemes:
-  - "http"
+  - "https"
 paths:
   /companies:
     get:
@@ -153,6 +153,7 @@ paths:
       tags:
         - "Templates"
       summary: "Obtener los steps de una plantilla"
+      description: "Obtiene los pasos de una plantilla específica. Los pasos son validados para asegurar que tengan la estructura correcta."
       parameters:
         - name: "id"
           in: "path"
@@ -167,14 +168,16 @@ paths:
             items:
               $ref: "#/definitions/Step"
         404:
-          description: "Plantilla o steps no encontrados"
+          description: "Plantilla no encontrada o sin pasos definidos"
           schema:
             type: "object"
             properties:
               error:
                 type: "string"
+                example: "Steps no encontrados"
               message:
                 type: "string"
+                example: "La plantilla 'CV Scanner' no tiene pasos definidos"
         400:
           description: "Formato de steps inválido"
           schema:
@@ -182,15 +185,18 @@ paths:
             properties:
               error:
                 type: "string"
+                example: "Formato de steps inválido"
               message:
                 type: "string"
+                example: "Uno o más steps no tienen la estructura correcta"
         500:
-          description: "Error interno del servidor"
+          description: "Error del servidor"
           schema:
             type: "object"
             properties:
               error:
                 type: "string"
+                example: "Error al obtener los steps de la plantilla"
               details:
                 type: "string"
               stack:
@@ -228,22 +234,8 @@ paths:
               $ref: "#/definitions/Step"
         404:
           description: "Plantilla no encontrada"
-          schema:
-            type: "object"
-            properties:
-              error:
-                type: "string"
-              message:
-                type: "string"
         400:
           description: "Formato de steps inválido"
-          schema:
-            type: "object"
-            properties:
-              error:
-                type: "string"
-              message:
-                type: "string"
   /contact-logs:
     get:
       tags:
@@ -367,7 +359,6 @@ definitions:
         type: string
       steps:
         type: array
-        description: "Array de steps almacenado como JSONB en la base de datos. Puede requerir parsing si se recibe como string."
         items:
           $ref: "#/definitions/Step"
       createdAt:
@@ -443,10 +434,13 @@ definitions:
     properties:
       step:
         type: string
-        description: "Nombre o número del paso (ejemplo: '1 Presentación', '2 Diagnóstico', etc.)"
+        description: "Nombre o número del paso (ej: '1 Presentación', 'Diagnóstico')"
+        example: "1 Presentación"
       salesperson_response:
         type: string
-        description: "Script o respuesta predefinida del vendedor. Puede incluir placeholders como <cliente>, <vendedor>"
+        description: "Script o respuesta del vendedor. Puede incluir placeholders como <cliente> o <vendedor>"
+        example: "¡Hola, <cliente>! Soy <vendedor>, de Kuali.ai."
       client_response:
         type: string
-        description: "Respuesta esperada o ejemplo de respuesta del cliente" 
+        description: "Respuesta esperada o ejemplo del cliente"
+        example: "Hola, me interesa saber más." 
