@@ -105,25 +105,65 @@ exports.getTemplateSteps = async (req, res) => {
   try {
     console.log('Obteniendo steps para template ID:', req.params.id);
     const template = await prisma.template.findUnique({
-      where: { id: req.params.id }
+      where: { id: req.params.id },
+      select: {
+        id: true,
+        title: true,
+        steps: true
+      }
     });
     
-    console.log('Template encontrado:', template);
+    console.log('Template encontrado:', JSON.stringify(template, null, 2));
     
     if (!template) {
       console.log('Template no encontrado para ID:', req.params.id);
       return res.status(404).json({ error: 'Plantilla no encontrada' });
     }
 
-    if (!template.steps) {
-      console.log('Steps no definidos para template:', template.title);
+    // Asegurarse de que steps sea un array
+    let stepsArray = template.steps;
+    
+    // Si steps es un string JSON, intentar parsearlo
+    if (typeof template.steps === 'string') {
+      try {
+        stepsArray = JSON.parse(template.steps);
+      } catch (e) {
+        console.error('Error al parsear steps:', e);
+        return res.status(500).json({ 
+          error: 'Error en formato de steps',
+          message: 'Los steps están en un formato JSON inválido'
+        });
+      }
+    }
+
+    // Verificar si steps es un array válido
+    if (!Array.isArray(stepsArray) || stepsArray.length === 0) {
+      console.log('Steps inválidos o vacíos:', stepsArray);
       return res.status(404).json({ 
         error: 'Steps no encontrados', 
-        message: `La plantilla "${template.title}" no tiene pasos definidos`
+        message: `La plantilla "${template.title}" no tiene pasos válidos definidos`
       });
     }
 
-    res.json(template.steps);
+    // Verificar que cada step tenga la estructura correcta
+    const stepsValidos = stepsArray.every(step => 
+      step && 
+      typeof step === 'object' &&
+      typeof step.step === 'string' &&
+      typeof step.salesperson_response === 'string' &&
+      typeof step.client_response === 'string'
+    );
+
+    if (!stepsValidos) {
+      console.log('Estructura de steps inválida:', stepsArray);
+      return res.status(400).json({
+        error: 'Formato de steps inválido',
+        message: 'Uno o más steps no tienen la estructura correcta'
+      });
+    }
+
+    console.log('Steps válidos encontrados:', JSON.stringify(stepsArray, null, 2));
+    res.json(stepsArray);
   } catch (error) {
     console.error('Error al obtener steps:', error);
     res.status(500).json({ 
