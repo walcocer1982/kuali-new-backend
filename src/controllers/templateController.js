@@ -108,21 +108,45 @@ exports.getTemplateSteps = async (req, res) => {
       where: { id: req.params.id }
     });
     
-    console.log('Template encontrado:', template);
+    console.log('Template encontrado:', JSON.stringify(template, null, 2));
     
     if (!template) {
       console.log('Template no encontrado para ID:', req.params.id);
       return res.status(404).json({ error: 'Plantilla no encontrada' });
     }
 
+    // Verificar si steps existe y no es null/undefined
     if (!template.steps) {
-      console.log('Steps no definidos para template:', template.title);
+      console.log('Steps es null o undefined:', template.steps);
       return res.status(404).json({ 
         error: 'Steps no encontrados', 
         message: `La plantilla "${template.title}" no tiene pasos definidos`
       });
     }
 
+    // Verificar si steps es un array vacío
+    if (Array.isArray(template.steps) && template.steps.length === 0) {
+      console.log('Steps es un array vacío');
+      return res.status(404).json({ 
+        error: 'Steps no encontrados', 
+        message: `La plantilla "${template.title}" tiene un array de pasos vacío`
+      });
+    }
+
+    // Si steps es un string JSON, intentar parsearlo
+    if (typeof template.steps === 'string') {
+      try {
+        template.steps = JSON.parse(template.steps);
+      } catch (e) {
+        console.error('Error al parsear steps:', e);
+        return res.status(500).json({ 
+          error: 'Error en formato de steps',
+          message: 'Los steps están en un formato JSON inválido'
+        });
+      }
+    }
+
+    console.log('Steps encontrados:', JSON.stringify(template.steps, null, 2));
     res.json(template.steps);
   } catch (error) {
     console.error('Error al obtener steps:', error);
