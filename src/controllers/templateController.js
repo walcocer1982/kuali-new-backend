@@ -103,13 +103,12 @@ exports.deleteTemplate = async (req, res) => {
 // Obtener los steps de una plantilla
 exports.getTemplateSteps = async (req, res) => {
   try {
-    console.log('Obteniendo steps para template ID:', req.params.id);
+    console.log('Obteniendo template con ID:', req.params.id);
+    
+    // Consulta simplificada sin select
     const template = await prisma.template.findUnique({
-      where: { id: req.params.id },
-      select: {
-        id: true,
-        title: true,
-        steps: true
+      where: {
+        id: req.params.id
       }
     });
     
@@ -120,13 +119,22 @@ exports.getTemplateSteps = async (req, res) => {
       return res.status(404).json({ error: 'Plantilla no encontrada' });
     }
 
+    // Verificar si steps existe
+    if (!template.steps) {
+      console.log('Steps no definidos para template:', template.title);
+      return res.status(404).json({ 
+        error: 'Steps no encontrados', 
+        message: `La plantilla "${template.title}" no tiene pasos definidos`
+      });
+    }
+
     // Asegurarse de que steps sea un array
-    let stepsArray = template.steps;
+    let stepsArray = Array.isArray(template.steps) ? template.steps : template.steps;
     
-    // Si steps es un string JSON, intentar parsearlo
-    if (typeof template.steps === 'string') {
+    // Si steps no es un array pero es un string JSON, intentar parsearlo
+    if (!Array.isArray(stepsArray) && typeof stepsArray === 'string') {
       try {
-        stepsArray = JSON.parse(template.steps);
+        stepsArray = JSON.parse(stepsArray);
       } catch (e) {
         console.error('Error al parsear steps:', e);
         return res.status(500).json({ 
@@ -136,7 +144,7 @@ exports.getTemplateSteps = async (req, res) => {
       }
     }
 
-    // Verificar si steps es un array válido
+    // Verificar si steps es un array válido después del parseo
     if (!Array.isArray(stepsArray) || stepsArray.length === 0) {
       console.log('Steps inválidos o vacíos:', stepsArray);
       return res.status(404).json({ 
