@@ -105,12 +105,14 @@ exports.getTemplateSteps = async (req, res) => {
   try {
     console.log('Obteniendo template con ID:', req.params.id);
     
-    // Consulta simplificada sin select
-    const template = await prisma.template.findUnique({
-      where: {
-        id: req.params.id
-      }
-    });
+    // Usar una consulta SQL directa para obtener el template con todos sus campos
+    const result = await prisma.$queryRaw`
+      SELECT id, title, body, steps, "createdAt", "updatedAt"
+      FROM "Template"
+      WHERE id = ${req.params.id}
+    `;
+
+    const template = result[0];
     
     console.log('Template encontrado:', JSON.stringify(template, null, 2));
     
