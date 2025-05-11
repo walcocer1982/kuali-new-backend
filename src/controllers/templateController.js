@@ -10,6 +10,21 @@ exports.getAllTemplates = async (req, res) => {
   }
 };
 
+// Obtener una plantilla por ID
+exports.getTemplateById = async (req, res) => {
+  try {
+    const template = await prisma.template.findUnique({
+      where: { id: req.params.id }
+    });
+    if (!template) {
+      return res.status(404).json({ error: 'Plantilla no encontrada' });
+    }
+    res.json(template);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener la plantilla' });
+  }
+};
+
 // Crear una nueva plantilla con validación de steps
 exports.createTemplate = async (req, res) => {
   try {
@@ -82,5 +97,52 @@ exports.deleteTemplate = async (req, res) => {
     res.status(204).send();
   } catch (error) {
     res.status(500).json({ error: 'Error al eliminar la plantilla' });
+  }
+};
+
+// Obtener los steps de una plantilla
+exports.getTemplateSteps = async (req, res) => {
+  try {
+    const template = await prisma.template.findUnique({
+      where: { id: req.params.id },
+      select: { steps: true }
+    });
+    if (!template) {
+      return res.status(404).json({ error: 'Plantilla no encontrada' });
+    }
+    res.json(template.steps);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener los steps de la plantilla' });
+  }
+};
+
+// Actualizar los steps de una plantilla
+exports.updateTemplateSteps = async (req, res) => {
+  try {
+    const { steps } = req.body;
+    
+    if (!Array.isArray(steps)) {
+      return res.status(400).json({ error: '`steps` debe ser un array.' });
+    }
+    
+    steps.forEach((item, idx) => {
+      if (
+        typeof item.step !== 'string' ||
+        typeof item.salesperson_response !== 'string' ||
+        typeof item.client_response !== 'string'
+      ) {
+        throw new Error(`Paso inválido en índice ${idx}: formato no válido.`);
+      }
+    });
+
+    const updatedTemplate = await prisma.template.update({
+      where: { id: req.params.id },
+      data: { steps },
+      select: { steps: true }
+    });
+    
+    res.json(updatedTemplate.steps);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al actualizar los steps de la plantilla', details: error.message });
   }
 }; 
