@@ -105,7 +105,12 @@ exports.getTemplateSteps = async (req, res) => {
   try {
     console.log('Obteniendo steps para template ID:', req.params.id);
     const template = await prisma.template.findUnique({
-      where: { id: req.params.id }
+      where: { id: req.params.id },
+      select: {
+        id: true,
+        title: true,
+        steps: true
+      }
     });
     
     console.log('Template encontrado:', JSON.stringify(template, null, 2));
@@ -115,28 +120,13 @@ exports.getTemplateSteps = async (req, res) => {
       return res.status(404).json({ error: 'Plantilla no encontrada' });
     }
 
-    // Verificar si steps existe y no es null/undefined
-    if (!template.steps) {
-      console.log('Steps es null o undefined:', template.steps);
-      return res.status(404).json({ 
-        error: 'Steps no encontrados', 
-        message: `La plantilla "${template.title}" no tiene pasos definidos`
-      });
-    }
-
-    // Verificar si steps es un array vacío
-    if (Array.isArray(template.steps) && template.steps.length === 0) {
-      console.log('Steps es un array vacío');
-      return res.status(404).json({ 
-        error: 'Steps no encontrados', 
-        message: `La plantilla "${template.title}" tiene un array de pasos vacío`
-      });
-    }
-
+    // Asegurarse de que steps sea un array
+    let stepsArray = template.steps;
+    
     // Si steps es un string JSON, intentar parsearlo
     if (typeof template.steps === 'string') {
       try {
-        template.steps = JSON.parse(template.steps);
+        stepsArray = JSON.parse(template.steps);
       } catch (e) {
         console.error('Error al parsear steps:', e);
         return res.status(500).json({ 
@@ -146,8 +136,34 @@ exports.getTemplateSteps = async (req, res) => {
       }
     }
 
-    console.log('Steps encontrados:', JSON.stringify(template.steps, null, 2));
-    res.json(template.steps);
+    // Verificar si steps es un array válido
+    if (!Array.isArray(stepsArray) || stepsArray.length === 0) {
+      console.log('Steps inválidos o vacíos:', stepsArray);
+      return res.status(404).json({ 
+        error: 'Steps no encontrados', 
+        message: `La plantilla "${template.title}" no tiene pasos válidos definidos`
+      });
+    }
+
+    // Verificar que cada step tenga la estructura correcta
+    const stepsValidos = stepsArray.every(step => 
+      step && 
+      typeof step === 'object' &&
+      typeof step.step === 'string' &&
+      typeof step.salesperson_response === 'string' &&
+      typeof step.client_response === 'string'
+    );
+
+    if (!stepsValidos) {
+      console.log('Estructura de steps inválida:', stepsArray);
+      return res.status(400).json({
+        error: 'Formato de steps inválido',
+        message: 'Uno o más steps no tienen la estructura correcta'
+      });
+    }
+
+    console.log('Steps válidos encontrados:', JSON.stringify(stepsArray, null, 2));
+    res.json(stepsArray);
   } catch (error) {
     console.error('Error al obtener steps:', error);
     res.status(500).json({ 
