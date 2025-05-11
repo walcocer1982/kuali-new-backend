@@ -92,6 +92,116 @@ paths:
           description: "Plantilla creada"
           schema:
             $ref: "#/definitions/Template"
+  /templates/{id}:
+    get:
+      tags:
+        - "Templates"
+      summary: "Obtener una plantilla por ID"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "string"
+          description: "ID de la plantilla"
+      responses:
+        200:
+          description: "Plantilla encontrada"
+          schema:
+            $ref: "#/definitions/Template"
+        404:
+          description: "Plantilla no encontrada"
+    put:
+      tags:
+        - "Templates"
+      summary: "Actualizar una plantilla"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "string"
+          description: "ID de la plantilla"
+        - in: "body"
+          name: "body"
+          description: "Datos a actualizar de la plantilla"
+          required: true
+          schema:
+            $ref: "#/definitions/TemplateInput"
+      responses:
+        200:
+          description: "Plantilla actualizada"
+          schema:
+            $ref: "#/definitions/Template"
+        404:
+          description: "Plantilla no encontrada"
+    delete:
+      tags:
+        - "Templates"
+      summary: "Eliminar una plantilla"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "string"
+          description: "ID de la plantilla"
+      responses:
+        204:
+          description: "Plantilla eliminada"
+        404:
+          description: "Plantilla no encontrada"
+  /templates/{id}/steps:
+    get:
+      tags:
+        - "Templates"
+      summary: "Obtener los steps de una plantilla"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "string"
+          description: "ID de la plantilla"
+      responses:
+        200:
+          description: "Steps de la plantilla"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Step"
+        404:
+          description: "Plantilla no encontrada"
+    put:
+      tags:
+        - "Templates"
+      summary: "Actualizar los steps de una plantilla"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "string"
+          description: "ID de la plantilla"
+        - in: "body"
+          name: "body"
+          description: "Nuevos steps de la plantilla"
+          required: true
+          schema:
+            type: "object"
+            required:
+              - "steps"
+            properties:
+              steps:
+                type: "array"
+                items:
+                  $ref: "#/definitions/Step"
+      responses:
+        200:
+          description: "Steps actualizados"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Step"
+        404:
+          description: "Plantilla no encontrada"
+        400:
+          description: "Formato de steps inválido"
   /contact-logs:
     get:
       tags:
@@ -214,8 +324,9 @@ definitions:
       body:
         type: string
       steps:
-        type: object
-        description: "Array de objetos con step, salesperson_response, client_response"
+        type: array
+        items:
+          $ref: "#/definitions/Step"
       createdAt:
         type: string
         format: date-time
@@ -233,8 +344,9 @@ definitions:
       body:
         type: string
       steps:
-        type: object
-        description: "Array de objetos con step, salesperson_response, client_response"
+        type: array
+        items:
+          $ref: "#/definitions/Step"
   Contact_Log:
     type: object
     properties:
@@ -278,4 +390,20 @@ definitions:
       - ENTREGADO
       - LEIDO
       - RESPONDIDO
-      - FALLIDO 
+      - FALLIDO
+  Step:
+    type: object
+    required:
+      - step
+      - salesperson_response
+      - client_response
+    properties:
+      step:
+        type: string
+        description: "Nombre del paso"
+      salesperson_response:
+        type: string
+        description: "Respuesta del vendedor"
+      client_response:
+        type: string
+        description: "Respuesta del cliente" 
