@@ -105,8 +105,7 @@ exports.getTemplateSteps = async (req, res) => {
   try {
     console.log('Obteniendo steps para template ID:', req.params.id);
     const template = await prisma.template.findUnique({
-      where: { id: req.params.id },
-      select: { steps: true, title: true }
+      where: { id: req.params.id }
     });
     
     console.log('Template encontrado:', template);
