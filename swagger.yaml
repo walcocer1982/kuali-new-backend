@@ -3,10 +3,10 @@ info:
   description: "API Documentation"
   version: "1.0.0"
   title: "Kuali API"
-host: "localhost:3000"
+host: "kuali-new-backend.onrender.com"
 basePath: "/"
 schemes:
-  - "http"
+  - "https"
 paths:
   /companies:
     get:
@@ -153,6 +153,7 @@ paths:
       tags:
         - "Templates"
       summary: "Obtener los steps de una plantilla"
+      description: "Obtiene los pasos de una plantilla específica. Los pasos son validados para asegurar que tengan la estructura correcta."
       parameters:
         - name: "id"
           in: "path"
@@ -167,7 +168,40 @@ paths:
             items:
               $ref: "#/definitions/Step"
         404:
-          description: "Plantilla no encontrada"
+          description: "Plantilla no encontrada o sin pasos definidos"
+          schema:
+            type: "object"
+            properties:
+              error:
+                type: "string"
+                example: "Steps no encontrados"
+              message:
+                type: "string"
+                example: "La plantilla 'CV Scanner' no tiene pasos definidos"
+        400:
+          description: "Formato de steps inválido"
+          schema:
+            type: "object"
+            properties:
+              error:
+                type: "string"
+                example: "Formato de steps inválido"
+              message:
+                type: "string"
+                example: "Uno o más steps no tienen la estructura correcta"
+        500:
+          description: "Error del servidor"
+          schema:
+            type: "object"
+            properties:
+              error:
+                type: "string"
+                example: "Error al obtener los steps de la plantilla"
+              details:
+                type: "string"
+              stack:
+                type: "string"
+                description: "Solo disponible en ambiente de desarrollo"
     put:
       tags:
         - "Templates"
@@ -400,10 +434,13 @@ definitions:
     properties:
       step:
         type: string
-        description: "Nombre del paso"
+        description: "Nombre o número del paso (ej: '1 Presentación', 'Diagnóstico')"
+        example: "1 Presentación"
       salesperson_response:
         type: string
-        description: "Respuesta del vendedor"
+        description: "Script o respuesta del vendedor. Puede incluir placeholders como <cliente> o <vendedor>"
+        example: "¡Hola, <cliente>! Soy <vendedor>, de Kuali.ai."
       client_response:
         type: string
-        description: "Respuesta del cliente" 
+        description: "Respuesta esperada o ejemplo del cliente"
+        example: "Hola, me interesa saber más." 
