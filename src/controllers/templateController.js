@@ -103,16 +103,35 @@ exports.deleteTemplate = async (req, res) => {
 // Obtener los steps de una plantilla
 exports.getTemplateSteps = async (req, res) => {
   try {
+    console.log('Obteniendo steps para template ID:', req.params.id);
     const template = await prisma.template.findUnique({
       where: { id: req.params.id },
-      select: { steps: true }
+      select: { steps: true, title: true }
     });
+    
+    console.log('Template encontrado:', template);
+    
     if (!template) {
+      console.log('Template no encontrado para ID:', req.params.id);
       return res.status(404).json({ error: 'Plantilla no encontrada' });
     }
+
+    if (!template.steps) {
+      console.log('Steps no definidos para template:', template.title);
+      return res.status(404).json({ 
+        error: 'Steps no encontrados', 
+        message: `La plantilla "${template.title}" no tiene pasos definidos`
+      });
+    }
+
     res.json(template.steps);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener los steps de la plantilla' });
+    console.error('Error al obtener steps:', error);
+    res.status(500).json({ 
+      error: 'Error al obtener los steps de la plantilla',
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 
