@@ -7,12 +7,12 @@ const prisma = new PrismaClient({
       url: process.env.DATABASE_URL
     }
   },
-  // Configuración del pool de conexiones
+  // Configuración optimizada del pool de conexiones
   __internal: {
     engine: {
-      connectionTimeout: 5000,
-      connectionLimit: 5,
-      queueLimit: 7,
+      connectionTimeout: 60000,    // 60 segundos
+      connectionLimit: 10,         // Aumentado para mejor manejo de carga
+      queueLimit: 15,             // Cola más grande para manejar picos de tráfico
       enableReadReplication: false
     }
   }
@@ -38,8 +38,8 @@ process.on('SIGTERM', async () => {
 });
 
 // Verificar la conexión a la base de datos con reintentos
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 5000;
+const MAX_RETRIES = 5;           // Aumentado número de reintentos
+const RETRY_DELAY = 10000;       // Aumentado delay entre intentos a 10 segundos
 
 async function connectWithRetry(retryCount = 0) {
   try {
