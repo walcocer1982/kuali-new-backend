@@ -1,0 +1,47 @@
+{
+  "title": "Venta Consultiva Servicios Cloud",
+  "body": "Plantilla para venta de servicios de migración y optimización cloud para empresas del sector tecnológico",
+  "tags": ["cloud", "B2B", "tecnología", "consultivo"],
+  "steps": [
+    {
+      "step": "Apertura personalizada",
+      "salesperson_response": "Buenos días <cliente>, soy <vendedor> de Kuali.ai. Revisando su perfil en LinkedIn, veo que estás liderando iniciativas de transformación digital en <compañía>. Me gustaría conocer más sobre los retos que enfrentan actualmente en su infraestructura tecnológica.",
+      "client_response": "Hola <vendedor>, gracias por contactarme. Sí, estamos buscando optimizar nuestra infraestructura y reducir costos."
+    },
+    {
+      "step": "Diagnóstico situacional",
+      "salesperson_response": "¿Qué aspectos de su infraestructura actual les genera mayores costos o ineficiencias?",
+      "client_response": "Nuestra infraestructura on-premise es costosa de mantener y nos falta flexibilidad para escalar según la demanda."
+    },
+    {
+      "step": "Exploración de objetivos",
+      "salesperson_response": "Entiendo. Además de reducir costos y ganar flexibilidad, ¿qué otros objetivos estratégicos buscan lograr con esta transformación?",
+      "client_response": "Necesitamos mejorar la seguridad de nuestros datos y facilitar el trabajo remoto de nuestros equipos."
+    },
+    {
+      "step": "Presentación de valor",
+      "salesperson_response": "En Kuali.ai hemos ayudado a empresas similares a reducir hasta un 40% en costos de infraestructura mediante nuestra metodología de migración cloud progresiva, que prioriza la seguridad y garantiza continuidad operativa. ¿Le interesaría conocer cómo lo logramos?",
+      "client_response": "Suena interesante, ¿podrían compartir algún caso similar al nuestro?"
+    },
+    {
+      "step": "Evidencia y credibilidad",
+      "salesperson_response": "Por supuesto. Trabajamos con TechSolutions, una empresa similar a la suya, y logramos su migración completa en 3 meses sin interrupciones de servicio, con mejoras en seguridad certificadas por ISO 27001 y ahorro del 35% desde el primer año.",
+      "client_response": "Impresionante, aunque me preocupa el tiempo de implementación y la curva de aprendizaje."
+    },
+    {
+      "step": "Manejo de objeciones",
+      "salesperson_response": "Entiendo su preocupación. Nuestro enfoque incluye un plan de capacitación para su equipo y asistencia 24/7 durante los primeros 6 meses. Además, la migración se realiza por fases priorizadas para minimizar el impacto. ¿Esto ayudaría a reducir esa inquietud?",
+      "client_response": "Sí, eso suena más factible. ¿Cuál sería el siguiente paso?"
+    },
+    {
+      "step": "Propuesta de siguiente paso",
+      "salesperson_response": "Le propongo agendar una sesión de diagnóstico gratuita con nuestro equipo técnico para evaluar su infraestructura actual y presentarles un plan preliminar personalizado. ¿Le parece bien el próximo jueves a las 10 am?",
+      "client_response": "De acuerdo, agendemos esa sesión para el jueves."
+    },
+    {
+      "step": "Cierre y validación",
+      "salesperson_response": "Excelente, le enviaré una invitación con los detalles y un breve cuestionario para preparar mejor la sesión. ¿Hay alguien más de su equipo que debería participar en esta reunión inicial?",
+      "client_response": "Sí, incluiré a nuestro CTO y al líder de infraestructura."
+    }
+  ]
+} 

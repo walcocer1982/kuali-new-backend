@@ -1,0 +1,22 @@
+{
+  "title": "Venta Consultiva Fintech",
+  "body": "Plantilla para venta de soluciones fintech a empresas medianas",
+  "tags": ["fintech", "B2B", "pagos", "financiero"],
+  "steps": [
+    {
+      "step": "Introducción personalizada",
+      "salesperson_response": "Buenos días <cliente>, soy <vendedor> de Kuali Finance. He visto que <compañía> está expandiendo operaciones y posiblemente enfrentando desafíos en la gestión de pagos internacionales.",
+      "client_response": "Sí, efectivamente estamos en proceso de expansión a nuevos mercados."
+    },
+    {
+      "step": "Evaluación de necesidades",
+      "salesperson_response": "¿Cuáles son los principales retos que enfrenta su tesorería actualmente con las transacciones internacionales?",
+      "client_response": "Los costos de cambio de divisas son altos y los tiempos de liquidación son impredecibles."
+    },
+    {
+      "step": "Presentación de solución",
+      "salesperson_response": "Nuestra plataforma Kuali Pay reduce las comisiones por cambio hasta un 70% y garantiza liquidación en 24 horas para 140 países. ¿Esto ayudaría a resolver su situación?",
+      "client_response": "Suena prometedor. ¿Qué tan compleja es la integración?"
+    }
+  ]
+} 

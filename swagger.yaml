@@ -516,8 +516,10 @@ definitions:
         type: string
       body:
         type: string
-      steps:
-        type: object
+      stepsJson:
+        type: array
+        items:
+          $ref: "#/definitions/Step"
         description: "Pasos de la plantilla en formato JSON"
         nullable: true
       tags:
@@ -544,11 +546,11 @@ definitions:
       body:
         type: string
         example: "Plantilla para venta de soluciones fintech"
-      steps:
+      stepsJson:
         type: array
         items:
           $ref: "#/definitions/Step"
-        description: "Lista de pasos de la plantilla (opcional en la creación)"
+        description: "Lista de pasos de la plantilla (opcional)"
         example:
           - step: "Introducción"
             salesperson_response: "Buenos días <cliente>, soy <vendedor> de Kuali"
@@ -617,16 +619,13 @@ definitions:
     properties:
       step:
         type: string
-        description: "Nombre o número del paso (ej: '1 Presentación', 'Diagnóstico')"
-        example: "1 Presentación"
+        description: "Título o identificador del paso"
       salesperson_response:
         type: string
-        description: "Script o respuesta del vendedor. Puede incluir placeholders como <cliente> o <vendedor>"
-        example: "¡Hola, <cliente>! Soy <vendedor>, de Kuali.ai."
+        description: "Respuesta o acción del vendedor"
       client_response:
         type: string
-        description: "Respuesta esperada o ejemplo del cliente"
-        example: "Hola, me interesa saber más."
+        description: "Respuesta esperada del cliente"
   Interaction:
     type: object
     properties:
