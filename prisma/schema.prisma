@@ -77,8 +77,8 @@ model Template {
 
 model Contact_Log {
   id         String        @id @default(uuid())
-  leadId     String
-  templateId String
+  leadId     String        // Relación con Lead
+  templateId String        // Relación con Template
   status     ContactStatus @default(PENDIENTE)
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
