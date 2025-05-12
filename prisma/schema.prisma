@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 datasource db {
@@ -20,21 +21,38 @@ model Company {
 }
 
 model Lead {
-  id          String        @id @default(uuid())
-  firstName   String
-  lastName    String
-  email       String        @unique
-  phoneNumber String?
-  linkedinUrl String?
-  role        String?
-  seniority   String?
-  status      LeadStatus    @default(NUEVO)
-  companyId   String
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  deletedAt   DateTime?
-  contactLogs Contact_Log[]
-  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id            String   @id @default(uuid())
+  firstName     String
+  lastName      String
+  email         String   @unique
+  phoneNumber   String?
+  
+  // Campos de empresa
+  companyName   String?
+  industry      String?
+  companySize   String?  // (e.g., "1-10", "11-50", "51-200", etc.)
+  annualRevenue Decimal? // Ingresos anuales estimados
+  
+  // Campos de seguimiento
+  status        LeadStatus @default(NEW)
+  leadSource    String?    // (e.g., "website", "referral", "campaign")
+  lastContactAt DateTime?
+  leadScore     Int?       // Puntuación del lead (0-100)
+  
+  // Campos de marketing
+  campaignId    String?
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+  acquisitionCost Decimal?
+  
+  // Relaciones
+  interactions  Interaction[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+  contactLogs   Contact_Log[]
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([firstName, lastName])
@@ -44,7 +62,7 @@ model Template {
   id          String        @id @default(uuid())
   title       String
   body        String
-  steps       Json?         @db.JsonB
+  stepsJson   Json?         @db.JsonB @map("steps")
   tags        String[]      @default([])
   contactLogs Contact_Log[]
   createdAt   DateTime      @default(now())
@@ -70,13 +88,12 @@ model Contact_Log {
 }
 
 enum LeadStatus {
-  NUEVO
-  CONTACTADO
-  INTERESADO
-  CALIFICADO
-  OPORTUNIDAD
-  CERRADO
-  DESCARTADO
+  NEW
+  CONTACTED
+  QUALIFIED
+  OPPORTUNITY
+  CUSTOMER
+  LOST
 }
 
 enum ContactStatus {
@@ -86,4 +103,25 @@ enum ContactStatus {
   LEIDO
   RESPONDIDO
   FALLIDO
+}
+
+model Interaction {
+  id          String    @id @default(uuid())
+  leadId      String
+  lead        Lead      @relation(fields: [leadId], references: [id])
+  type        InteractionType
+  notes       String?   @db.Text
+  result      String?
+  scheduledAt DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum InteractionType {
+  CALL
+  EMAIL
+  MEETING
+  DEMO
+  OTHER
 }
