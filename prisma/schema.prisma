@@ -28,6 +28,7 @@ model Lead {
   phoneNumber   String?
   
   // Campos de empresa
+  companyId     String
   companyName   String?
   industry      String?
   companySize   String?  // (e.g., "1-10", "11-50", "51-200", etc.)
@@ -62,11 +63,11 @@ model Template {
   id          String        @id @default(uuid())
   title       String
   body        String
-  stepsJson   Json?         @db.JsonB @map("steps")
-  tags        String[]      @default([])
+  stepsJson   Json?        @map("steps")
+  tags        String[]     @default([])
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   contactLogs Contact_Log[]
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
 
   @@map("Template")
   @@index([title])

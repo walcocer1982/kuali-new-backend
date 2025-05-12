@@ -28,63 +28,153 @@ exports.getTemplateById = async (req, res) => {
 // Crear una nueva plantilla con validación de steps
 exports.createTemplate = async (req, res) => {
   try {
-    const { title, body, steps } = req.body;
-    // Validar que steps sea un array de objetos con llaves correctas
+    const { title, body, steps, tags } = req.body;
+    
+    // Validación del template básico
+    if (!title || !body) {
+      return res.status(400).json({ error: 'Los campos title y body son obligatorios.' });
+    }
+
+    // Objeto base para crear el template
+    const data = { 
+      title, 
+      body
+    };
+    
+    // Añadir tags si están presentes
+    if (tags && Array.isArray(tags)) {
+      data.tags = tags;
+    }
+    
+    // Validar y procesar steps si están presentes
     if (steps !== undefined) {
       if (!Array.isArray(steps)) {
-        return res.status(400).json({ error: '`steps` debe ser un array.' });
+        return res.status(400).json({ error: 'steps debe ser un array.' });
       }
-      steps.forEach((item, idx) => {
+      
+      // Validar estructura de cada step
+      for (let i = 0; i < steps.length; i++) {
+        const item = steps[i];
         if (
+          !item ||
+          typeof item !== 'object' ||
           typeof item.step !== 'string' ||
           typeof item.salesperson_response !== 'string' ||
           typeof item.client_response !== 'string'
         ) {
-          throw new Error(`Paso inválido en índice ${idx}: formato no válido.`);
+          return res.status(400).json({ 
+            error: `Paso inválido en índice ${i}`, 
+            message: 'Cada paso debe tener los campos: step, salesperson_response y client_response'
+          });
         }
-      });
+      }
+      
+      // Asignar steps al campo stepsJson en Prisma
+      data.stepsJson = steps;
     }
-    const data = { title, body };
-    if (steps !== undefined) data.steps = steps;
 
-    const newTemplate = await prisma.template.create({ data });
-    res.status(201).json(newTemplate);
+    // Crear el template con todos los datos
+    const newTemplate = await prisma.template.create({ 
+      data,
+      include: {
+        contactLogs: false
+      }
+    });
+    
+    // Si se creó correctamente, procesamos la respuesta
+    // Renombramos stepsJson a steps en la respuesta
+    const response = {
+      ...newTemplate,
+      steps: newTemplate.stepsJson,
+      stepsJson: undefined
+    };
+    
+    res.status(201).json(response);
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear la plantilla', details: error.message });
+    console.error('Error al crear template:', error);
+    res.status(500).json({ 
+      error: 'Error al crear la plantilla', 
+      details: error.message 
+    });
   }
 };
 
 // Actualizar una plantilla con validación de steps
 exports.updateTemplate = async (req, res) => {
   try {
-    const { title, body, steps } = req.body;
-    // Validar steps si viene presente
+    const { title, body, steps, tags } = req.body;
+    
+    // Verificar que el template exista
+    const existingTemplate = await prisma.template.findUnique({
+      where: { id: req.params.id }
+    });
+    
+    if (!existingTemplate) {
+      return res.status(404).json({ error: 'Plantilla no encontrada' });
+    }
+    
+    // Preparar datos para actualización
+    const data = {};
+    
+    // Añadir campos solo si están definidos
+    if (title !== undefined) data.title = title;
+    if (body !== undefined) data.body = body;
+    
+    // Añadir tags si están presentes
+    if (tags !== undefined) {
+      if (!Array.isArray(tags)) {
+        return res.status(400).json({ error: 'tags debe ser un array.' });
+      }
+      data.tags = tags;
+    }
+    
+    // Validar y procesar steps si están presentes
     if (steps !== undefined) {
       if (!Array.isArray(steps)) {
-        return res.status(400).json({ error: '`steps` debe ser un array.' });
+        return res.status(400).json({ error: 'steps debe ser un array.' });
       }
-      steps.forEach((item, idx) => {
+      
+      // Validar estructura de cada step
+      for (let i = 0; i < steps.length; i++) {
+        const item = steps[i];
         if (
+          !item ||
+          typeof item !== 'object' ||
           typeof item.step !== 'string' ||
           typeof item.salesperson_response !== 'string' ||
           typeof item.client_response !== 'string'
         ) {
-          throw new Error(`Paso inválido en índice ${idx}: formato no válido.`);
+          return res.status(400).json({ 
+            error: `Paso inválido en índice ${i}`, 
+            message: 'Cada paso debe tener los campos: step, salesperson_response y client_response'
+          });
         }
-      });
+      }
+      
+      // Asignar steps al campo stepsJson en Prisma
+      data.stepsJson = steps;
     }
-    const data = {};
-    if (title !== undefined) data.title = title;
-    if (body !== undefined) data.body = body;
-    if (steps !== undefined) data.steps = steps;
 
+    // Actualizar el template con los datos proporcionados
     const updatedTemplate = await prisma.template.update({
       where: { id: req.params.id },
       data,
     });
-    res.json(updatedTemplate);
+    
+    // Renombramos stepsJson a steps en la respuesta
+    const response = {
+      ...updatedTemplate,
+      steps: updatedTemplate.stepsJson,
+      stepsJson: undefined
+    };
+    
+    res.json(response);
   } catch (error) {
-    res.status(500).json({ error: 'Error al actualizar la plantilla', details: error.message });
+    console.error('Error al actualizar template:', error);
+    res.status(500).json({ 
+      error: 'Error al actualizar la plantilla', 
+      details: error.message 
+    });
   }
 };
 
@@ -107,7 +197,7 @@ exports.getTemplateSteps = async (req, res) => {
     
     // Usar una consulta SQL directa para obtener el template con todos sus campos
     const result = await prisma.$queryRaw`
-      SELECT id, title, body, steps, "createdAt", "updatedAt"
+      SELECT id, title, body, steps as "stepsJson", "createdAt", "updatedAt"
       FROM "Template"
       WHERE id = ${req.params.id}
     `;
@@ -122,7 +212,7 @@ exports.getTemplateSteps = async (req, res) => {
     }
 
     // Verificar si steps existe
-    if (!template.steps) {
+    if (!template.stepsJson) {
       console.log('Steps no definidos para template:', template.title);
       return res.status(404).json({ 
         error: 'Steps no encontrados', 
@@ -131,7 +221,7 @@ exports.getTemplateSteps = async (req, res) => {
     }
 
     // Asegurarse de que steps sea un array
-    let stepsArray = Array.isArray(template.steps) ? template.steps : template.steps;
+    let stepsArray = Array.isArray(template.stepsJson) ? template.stepsJson : template.stepsJson;
     
     // Si steps no es un array pero es un string JSON, intentar parsearlo
     if (!Array.isArray(stepsArray) && typeof stepsArray === 'string') {
@@ -190,26 +280,33 @@ exports.updateTemplateSteps = async (req, res) => {
     const { steps } = req.body;
     
     if (!Array.isArray(steps)) {
-      return res.status(400).json({ error: '`steps` debe ser un array.' });
+      return res.status(400).json({ error: 'steps debe ser un array.' });
     }
     
-    steps.forEach((item, idx) => {
+    // Validar estructura de cada step
+    for (let i = 0; i < steps.length; i++) {
+      const item = steps[i];
       if (
+        !item ||
+        typeof item !== 'object' ||
         typeof item.step !== 'string' ||
         typeof item.salesperson_response !== 'string' ||
         typeof item.client_response !== 'string'
       ) {
-        throw new Error(`Paso inválido en índice ${idx}: formato no válido.`);
+        return res.status(400).json({ 
+          error: `Paso inválido en índice ${i}`, 
+          message: 'Cada paso debe tener los campos: step, salesperson_response y client_response'
+        });
       }
-    });
+    }
 
     const updatedTemplate = await prisma.template.update({
       where: { id: req.params.id },
-      data: { steps },
-      select: { steps: true }
+      data: { stepsJson: steps },
+      select: { stepsJson: true }
     });
     
-    res.json(updatedTemplate.steps);
+    res.json(updatedTemplate.stepsJson);
   } catch (error) {
     res.status(500).json({ error: 'Error al actualizar los steps de la plantilla', details: error.message });
   }
