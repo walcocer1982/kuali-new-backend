@@ -181,7 +181,7 @@ paths:
       tags:
         - "Templates"
       summary: "Obtener los steps de una plantilla"
-      description: "Obtiene los pasos de una plantilla específica. Los pasos son validados para asegurar que tengan la estructura correcta."
+      description: "Obtiene los pasos de una plantilla específica en formato JSON."
       parameters:
         - name: "id"
           in: "path"
@@ -192,9 +192,8 @@ paths:
         200:
           description: "Steps de la plantilla"
           schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Step"
+            type: "object"
+            description: "Objeto JSON con los pasos de la plantilla"
         404:
           description: "Plantilla no encontrada o sin pasos definidos"
           schema:
@@ -205,7 +204,7 @@ paths:
                 example: "Steps no encontrados"
               message:
                 type: "string"
-                example: "La plantilla 'CV Scanner' no tiene pasos definidos"
+                example: "La plantilla no tiene pasos definidos"
         400:
           description: "Formato de steps inválido"
           schema:
@@ -216,20 +215,7 @@ paths:
                 example: "Formato de steps inválido"
               message:
                 type: "string"
-                example: "Uno o más steps no tienen la estructura correcta"
-        500:
-          description: "Error del servidor"
-          schema:
-            type: "object"
-            properties:
-              error:
-                type: "string"
-                example: "Error al obtener los steps de la plantilla"
-              details:
-                type: "string"
-              stack:
-                type: "string"
-                description: "Solo disponible en ambiente de desarrollo"
+                example: "El formato JSON de los steps no es válido"
     put:
       tags:
         - "Templates"
@@ -242,24 +228,20 @@ paths:
           description: "ID de la plantilla"
         - in: "body"
           name: "body"
-          description: "Nuevos steps de la plantilla"
+          description: "Nuevos steps de la plantilla en formato JSON"
           required: true
           schema:
             type: "object"
-            required:
-              - "steps"
             properties:
               steps:
-                type: "array"
-                items:
-                  $ref: "#/definitions/Step"
+                type: "object"
+                description: "Objeto JSON con los nuevos pasos"
       responses:
         200:
           description: "Steps actualizados"
           schema:
-            type: "array"
-            items:
-              $ref: "#/definitions/Step"
+            type: "object"
+            description: "Objeto JSON con los pasos actualizados"
         404:
           description: "Plantilla no encontrada"
         400:
@@ -438,6 +420,9 @@ definitions:
       phoneNumber:
         type: string
       # Campos de empresa
+      companyId:
+        type: string
+        description: "ID de la empresa asociada"
       companyName:
         type: string
       industry:
@@ -488,12 +473,15 @@ definitions:
       - firstName
       - lastName
       - email
+      - companyId
     properties:
       firstName:
         type: string
       lastName:
         type: string
       email:
+        type: string
+      companyId:
         type: string
       phoneNumber:
         type: string
@@ -529,14 +517,15 @@ definitions:
       body:
         type: string
       steps:
-        type: array
-        items:
-          $ref: "#/definitions/Step"
+        type: object
+        description: "Pasos de la plantilla en formato JSON"
+        nullable: true
       tags:
         type: array
         items:
           type: string
         description: "Etiquetas para categorizar y organizar templates"
+        default: []
       createdAt:
         type: string
         format: date-time
