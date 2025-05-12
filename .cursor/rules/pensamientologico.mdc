@@ -1,0 +1,29 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Rule Type: Auto
+Let sequentialThinking decide which MCP tools to use for solving multi-step tasks.
+
+@sequentialThinking
+Use this rule when the task involves:
+- Information retrieval
+- Web navigation or interaction
+- UI component suggestions
+- Visualization or documentation search
+
+This rule delegates the orchestration logic to sequentialThinking. It will analyze the user's goal and dynamically determine whether to use:
+- @brave for web search
+- @puppeteer for web automation
+- @context7 for resolving or documenting libraries
+- @magicuidesign/mcp for UI components or visual elements
+
+Let the toolchain be determined based on reasoning flow. Do not include unnecessary tools unless justified.
+
+Example:
+"Build a UI mockup based on current UX trends" → triggers:
+1. brave → search UX trends
+2. puppeteer → extract key ideas
+3. context7 → lookup component libraries
+4. mcp → render UI elements

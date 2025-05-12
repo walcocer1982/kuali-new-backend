@@ -1,0 +1,56 @@
+# 🚫 Rule: Tool Redundancy & Error Prevention for UI Tasks
+
+**Rule Name**: `MCP_Error_Prevention`  
+**Rule Type**: `Error Handling`  
+**Agent**: `@sequentialThinking`  
+**Purpose**: Prevent misuse of non-visual tools and enforce correct MCP server selection for UI generation tasks.
+
+---
+
+## 🚨 Trigger Conditions
+
+Apply this rule when:
+- The prompt is about **UI**, but no MCP tool is triggered.
+- Non-visual tools (`@brave`, `@puppeteer`, `@context7`) are used **without justification**.
+- More than one MCP server is invoked **redundantly**.
+- There is an **unnecessary delay** in visual generation caused by misordered tools.
+
+---
+
+## 🧠 Error Correction Logic
+
+- Always trigger **one appropriate MCP server** based on prompt intent:
+  - `@magicuidesign/mcp-dashboard` → if the prompt includes: `dashboard`, `analytics`, `panel`, `metrics`
+  - `@magicuidesign/mcp-tailwind-ui` → if the prompt includes: `app`, `mobile`, `student`, `form`, `interface`, `UX`
+  - `@magicuidesign/mcp-whiteboard` → if the prompt includes: `diagram`, `layout plan`, `architecture`, `flow`
+
+- **Block or delay `@brave`, `@puppeteer`, `@context7`** unless:
+  - The prompt is vague or exploratory in nature
+  - The user requests inspiration, examples, or technical documentation explicitly
+
+- Never trigger more than one MCP server for the same visual output unless:
+  - One is used for UI (`tailwind-ui`) and the other for structure (`whiteboard`)
+
+---
+
+## 🧭 Recommended MCP Servers by Use Case
+
+| Use Case                             | Recommended MCP Server                   |
+|--------------------------------------|-------------------------------------------|
+| UI layout for apps or components     | `@magicuidesign/mcp-tailwind-ui` ✅       |
+| Visual dashboards and analytics      | `@magicuidesign/mcp-dashboard` ✅         |
+| UI sketching or planning flows       | `@magicuidesign/mcp-whiteboard` (optional) |
+| Any other                           | Reject if visual intention is unmet by MCP |
+
+---
+
+## ❌ Incorrect Flow Example
+
+**Prompt**:  
+`"Create a layout for a student productivity app"`
+
+**Wrong Flow**:
+```text
+1. brave → search examples
+2. context7 → fetch code
+3. puppeteer → scrape layout

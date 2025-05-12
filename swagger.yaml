@@ -361,6 +361,11 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/Step"
+      tags:
+        type: array
+        items:
+          type: string
+        description: "Etiquetas para categorizar y organizar templates"
       createdAt:
         type: string
         format: date-time
@@ -381,6 +386,11 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/Step"
+      tags:
+        type: array
+        items:
+          type: string
+        description: "Etiquetas para categorizar y organizar templates"
   Contact_Log:
     type: object
     properties:
@@ -390,6 +400,9 @@ definitions:
         type: string
       templateId:
         type: string
+      status:
+        $ref: "#/definitions/ContactStatus"
+        description: "Estado actual del contacto"
       createdAt:
         type: string
         format: date-time
@@ -406,6 +419,9 @@ definitions:
         type: string
       templateId:
         type: string
+      status:
+        $ref: "#/definitions/ContactStatus"
+        description: "Estado inicial del contacto"
   LeadStatus:
     type: string
     enum:
