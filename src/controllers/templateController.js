@@ -28,7 +28,7 @@ exports.getTemplateById = async (req, res) => {
 // Crear una nueva plantilla con validación de steps
 exports.createTemplate = async (req, res) => {
   try {
-    const { title, body, steps, tags } = req.body;
+    const { title, body, stepsJson, tags } = req.body;
     
     // Validación del template básico
     if (!title || !body) {
@@ -46,50 +46,46 @@ exports.createTemplate = async (req, res) => {
       data.tags = tags;
     }
     
-    // Validar y procesar steps si están presentes
-    if (steps !== undefined) {
-      if (!Array.isArray(steps)) {
-        return res.status(400).json({ error: 'steps debe ser un array.' });
-      }
-      
-      // Validar estructura de cada step
-      for (let i = 0; i < steps.length; i++) {
-        const item = steps[i];
-        if (
-          !item ||
-          typeof item !== 'object' ||
-          typeof item.step !== 'string' ||
-          typeof item.salesperson_response !== 'string' ||
-          typeof item.client_response !== 'string'
-        ) {
-          return res.status(400).json({ 
-            error: `Paso inválido en índice ${i}`, 
-            message: 'Cada paso debe tener los campos: step, salesperson_response y client_response'
-          });
+    // Validar y procesar stepsJson si está presente
+    if (stepsJson !== undefined) {
+      // Validar que sea un array o un objeto JSON válido
+      try {
+        const stepsData = typeof stepsJson === 'string' ? JSON.parse(stepsJson) : stepsJson;
+        
+        if (!Array.isArray(stepsData)) {
+          return res.status(400).json({ error: 'stepsJson debe ser un array.' });
         }
+        
+        // Validar estructura de cada step
+        for (let i = 0; i < stepsData.length; i++) {
+          const item = stepsData[i];
+          if (
+            !item ||
+            typeof item !== 'object' ||
+            typeof item.step !== 'string' ||
+            typeof item.salesperson_response !== 'string' ||
+            typeof item.client_response !== 'string'
+          ) {
+            return res.status(400).json({ 
+              error: `Paso inválido en índice ${i}`, 
+              message: 'Cada paso debe tener los campos: step, salesperson_response y client_response'
+            });
+          }
+        }
+        
+        data.stepsJson = stepsData;
+      } catch (e) {
+        return res.status(400).json({ 
+          error: 'Formato JSON inválido', 
+          message: 'El campo stepsJson debe ser un JSON válido'
+        });
       }
-      
-      // Asignar steps al campo stepsJson en Prisma
-      data.stepsJson = steps;
     }
 
     // Crear el template con todos los datos
-    const newTemplate = await prisma.template.create({ 
-      data,
-      include: {
-        contactLogs: false
-      }
-    });
+    const newTemplate = await prisma.template.create({ data });
     
-    // Si se creó correctamente, procesamos la respuesta
-    // Renombramos stepsJson a steps en la respuesta
-    const response = {
-      ...newTemplate,
-      steps: newTemplate.stepsJson,
-      stepsJson: undefined
-    };
-    
-    res.status(201).json(response);
+    res.status(201).json(newTemplate);
   } catch (error) {
     console.error('Error al crear template:', error);
     res.status(500).json({ 
@@ -102,7 +98,7 @@ exports.createTemplate = async (req, res) => {
 // Actualizar una plantilla con validación de steps
 exports.updateTemplate = async (req, res) => {
   try {
-    const { title, body, steps, tags } = req.body;
+    const { title, body, stepsJson, tags } = req.body;
     
     // Verificar que el template exista
     const existingTemplate = await prisma.template.findUnique({
@@ -128,31 +124,39 @@ exports.updateTemplate = async (req, res) => {
       data.tags = tags;
     }
     
-    // Validar y procesar steps si están presentes
-    if (steps !== undefined) {
-      if (!Array.isArray(steps)) {
-        return res.status(400).json({ error: 'steps debe ser un array.' });
-      }
-      
-      // Validar estructura de cada step
-      for (let i = 0; i < steps.length; i++) {
-        const item = steps[i];
-        if (
-          !item ||
-          typeof item !== 'object' ||
-          typeof item.step !== 'string' ||
-          typeof item.salesperson_response !== 'string' ||
-          typeof item.client_response !== 'string'
-        ) {
-          return res.status(400).json({ 
-            error: `Paso inválido en índice ${i}`, 
-            message: 'Cada paso debe tener los campos: step, salesperson_response y client_response'
-          });
+    // Validar y procesar stepsJson si está presente
+    if (stepsJson !== undefined) {
+      try {
+        const stepsData = typeof stepsJson === 'string' ? JSON.parse(stepsJson) : stepsJson;
+        
+        if (!Array.isArray(stepsData)) {
+          return res.status(400).json({ error: 'stepsJson debe ser un array.' });
         }
+        
+        // Validar estructura de cada step
+        for (let i = 0; i < stepsData.length; i++) {
+          const item = stepsData[i];
+          if (
+            !item ||
+            typeof item !== 'object' ||
+            typeof item.step !== 'string' ||
+            typeof item.salesperson_response !== 'string' ||
+            typeof item.client_response !== 'string'
+          ) {
+            return res.status(400).json({ 
+              error: `Paso inválido en índice ${i}`, 
+              message: 'Cada paso debe tener los campos: step, salesperson_response y client_response'
+            });
+          }
+        }
+        
+        data.stepsJson = stepsData;
+      } catch (e) {
+        return res.status(400).json({ 
+          error: 'Formato JSON inválido', 
+          message: 'El campo stepsJson debe ser un JSON válido'
+        });
       }
-      
-      // Asignar steps al campo stepsJson en Prisma
-      data.stepsJson = steps;
     }
 
     // Actualizar el template con los datos proporcionados
@@ -161,14 +165,7 @@ exports.updateTemplate = async (req, res) => {
       data,
     });
     
-    // Renombramos stepsJson a steps en la respuesta
-    const response = {
-      ...updatedTemplate,
-      steps: updatedTemplate.stepsJson,
-      stepsJson: undefined
-    };
-    
-    res.json(response);
+    res.json(updatedTemplate);
   } catch (error) {
     console.error('Error al actualizar template:', error);
     res.status(500).json({ 
@@ -193,59 +190,36 @@ exports.deleteTemplate = async (req, res) => {
 // Obtener los steps de una plantilla
 exports.getTemplateSteps = async (req, res) => {
   try {
-    console.log('Obteniendo template con ID:', req.params.id);
-    
-    // Usar una consulta SQL directa para obtener el template con todos sus campos
-    const result = await prisma.$queryRaw`
-      SELECT id, title, body, steps as "stepsJson", "createdAt", "updatedAt"
-      FROM "Template"
-      WHERE id = ${req.params.id}
-    `;
-
-    const template = result[0];
-    
-    console.log('Template encontrado:', JSON.stringify(template, null, 2));
+    const template = await prisma.template.findUnique({
+      where: { id: req.params.id },
+      select: {
+        id: true,
+        title: true,
+        stepsJson: true
+      }
+    });
     
     if (!template) {
-      console.log('Template no encontrado para ID:', req.params.id);
       return res.status(404).json({ error: 'Plantilla no encontrada' });
     }
 
-    // Verificar si steps existe
+    // Verificar si stepsJson existe
     if (!template.stepsJson) {
-      console.log('Steps no definidos para template:', template.title);
       return res.status(404).json({ 
         error: 'Steps no encontrados', 
-        message: `La plantilla "${template.title}" no tiene pasos definidos`
+        message: `La plantilla no tiene pasos definidos`
       });
     }
 
-    // Asegurarse de que steps sea un array
-    let stepsArray = Array.isArray(template.stepsJson) ? template.stepsJson : template.stepsJson;
-    
-    // Si steps no es un array pero es un string JSON, intentar parsearlo
-    if (!Array.isArray(stepsArray) && typeof stepsArray === 'string') {
-      try {
-        stepsArray = JSON.parse(stepsArray);
-      } catch (e) {
-        console.error('Error al parsear steps:', e);
-        return res.status(500).json({ 
-          error: 'Error en formato de steps',
-          message: 'Los steps están en un formato JSON inválido'
-        });
-      }
-    }
-
-    // Verificar si steps es un array válido después del parseo
+    // Validar que cada step tenga la estructura correcta
+    const stepsArray = template.stepsJson;
     if (!Array.isArray(stepsArray) || stepsArray.length === 0) {
-      console.log('Steps inválidos o vacíos:', stepsArray);
       return res.status(404).json({ 
         error: 'Steps no encontrados', 
-        message: `La plantilla "${template.title}" no tiene pasos válidos definidos`
+        message: `La plantilla no tiene pasos válidos definidos`
       });
     }
 
-    // Verificar que cada step tenga la estructura correcta
     const stepsValidos = stepsArray.every(step => 
       step && 
       typeof step === 'object' &&
@@ -255,21 +229,18 @@ exports.getTemplateSteps = async (req, res) => {
     );
 
     if (!stepsValidos) {
-      console.log('Estructura de steps inválida:', stepsArray);
       return res.status(400).json({
         error: 'Formato de steps inválido',
         message: 'Uno o más steps no tienen la estructura correcta'
       });
     }
 
-    console.log('Steps válidos encontrados:', JSON.stringify(stepsArray, null, 2));
-    res.json(stepsArray);
+    res.json(template.stepsJson);
   } catch (error) {
     console.error('Error al obtener steps:', error);
     res.status(500).json({ 
       error: 'Error al obtener los steps de la plantilla',
-      details: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      details: error.message
     });
   }
 };

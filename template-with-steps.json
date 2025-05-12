@@ -1,0 +1,23 @@
+{
+  "title": "Venta Consultiva Servicios Cloud",
+  "body": "Plantilla para venta de servicios de migración y optimización cloud para empresas del sector tecnológico",
+  "steps": {
+    "steps": [
+      {
+        "step": "Apertura personalizada",
+        "salesperson_response": "Buenos días <cliente>, soy <vendedor> de Kuali.ai. Revisando su perfil en LinkedIn, veo que estás liderando iniciativas de transformación digital en <compañía>.",
+        "client_response": "Hola <vendedor>, gracias por contactarme. Sí, estamos buscando optimizar nuestra infraestructura."
+      },
+      {
+        "step": "Diagnóstico situacional",
+        "salesperson_response": "¿Qué aspectos de su infraestructura actual les genera mayores costos o ineficiencias?",
+        "client_response": "Nuestra infraestructura on-premise es costosa de mantener y nos falta flexibilidad."
+      },
+      {
+        "step": "Cierre y validación",
+        "salesperson_response": "Excelente, le enviaré una invitación con los detalles para la reunión. ¿Hay alguien más que debería participar?",
+        "client_response": "Sí, incluiré a nuestro CTO y al líder de infraestructura."
+      }
+    ]
+  }
+} 
