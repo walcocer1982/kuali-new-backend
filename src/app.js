@@ -30,11 +30,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 const companyRoutes = require('./routes/companyRoutes');
 const leadRoutes = require('./routes/leadRoutes');
 const templateRoutes = require('./routes/templateRoutes');
-const contactRoutes = require('./routes/contactRoutes');
+const contactLogRoutes = require('./routes/contactLogRoutes');
 
 app.use('/companies', companyRoutes);
 app.use('/leads', leadRoutes);
 app.use('/templates', templateRoutes);
-app.use('/contacts', contactRoutes);
+app.use('/api/contact-logs', contactLogRoutes);
 
 module.exports = app; 
