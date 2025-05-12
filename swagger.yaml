@@ -80,18 +80,46 @@ paths:
       tags:
         - "Templates"
       summary: "Crear una plantilla"
+      description: "Crea una nueva plantilla. Opcionalmente puede incluir steps en la creación inicial."
       parameters:
         - in: "body"
           name: "body"
-          description: "Datos de la plantilla"
+          description: "Datos de la plantilla y sus steps (opcional)"
           required: true
           schema:
             $ref: "#/definitions/TemplateInput"
       responses:
         201:
-          description: "Plantilla creada"
+          description: "Plantilla creada exitosamente"
           schema:
             $ref: "#/definitions/Template"
+          examples:
+            application/json:
+              id: "550e8400-e29b-41d4-a716-446655440000"
+              title: "Venta Consultiva Fintech"
+              body: "Plantilla para venta de soluciones fintech"
+              steps:
+                - step: "Introducción"
+                  salesperson_response: "Buenos días <cliente>, soy <vendedor> de Kuali"
+                  client_response: "Hola, gracias por contactarme"
+              tags: ["fintech", "venta"]
+              createdAt: "2024-03-20T15:30:00Z"
+              updatedAt: "2024-03-20T15:30:00Z"
+        400:
+          description: "Error de validación"
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "Error de validación"
+              message:
+                type: string
+                example: "Los campos title y body son obligatorios"
+              details:
+                type: object
+                example:
+                  steps: "Formato de steps inválido"
   /templates/{id}:
     get:
       tags:
@@ -523,17 +551,25 @@ definitions:
     properties:
       title:
         type: string
+        example: "Venta Consultiva Fintech"
       body:
         type: string
+        example: "Plantilla para venta de soluciones fintech"
       steps:
         type: array
         items:
           $ref: "#/definitions/Step"
+        description: "Lista de pasos de la plantilla (opcional en la creación)"
+        example:
+          - step: "Introducción"
+            salesperson_response: "Buenos días <cliente>, soy <vendedor> de Kuali"
+            client_response: "Hola, gracias por contactarme"
       tags:
         type: array
         items:
           type: string
         description: "Etiquetas para categorizar y organizar templates"
+        example: ["fintech", "venta"]
   Contact_Log:
     type: object
     properties:
