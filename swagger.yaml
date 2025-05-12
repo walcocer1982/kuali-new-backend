@@ -264,6 +264,110 @@ paths:
           description: "Contacto creado"
           schema:
             $ref: "#/definitions/Contact_Log"
+  /interactions:
+    get:
+      tags:
+        - "Interactions"
+      summary: "Obtener listado de interacciones"
+      responses:
+        200:
+          description: "Lista de interacciones"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Interaction"
+    post:
+      tags:
+        - "Interactions"
+      summary: "Crear una nueva interacción"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Datos de la interacción"
+          required: true
+          schema:
+            $ref: "#/definitions/InteractionInput"
+      responses:
+        201:
+          description: "Interacción creada"
+          schema:
+            $ref: "#/definitions/Interaction"
+  /interactions/{id}:
+    get:
+      tags:
+        - "Interactions"
+      summary: "Obtener una interacción por ID"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "string"
+          description: "ID de la interacción"
+      responses:
+        200:
+          description: "Interacción encontrada"
+          schema:
+            $ref: "#/definitions/Interaction"
+        404:
+          description: "Interacción no encontrada"
+    put:
+      tags:
+        - "Interactions"
+      summary: "Actualizar una interacción"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "string"
+          description: "ID de la interacción"
+        - in: "body"
+          name: "body"
+          description: "Datos a actualizar de la interacción"
+          required: true
+          schema:
+            $ref: "#/definitions/InteractionInput"
+      responses:
+        200:
+          description: "Interacción actualizada"
+          schema:
+            $ref: "#/definitions/Interaction"
+        404:
+          description: "Interacción no encontrada"
+    delete:
+      tags:
+        - "Interactions"
+      summary: "Eliminar una interacción"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          type: "string"
+          description: "ID de la interacción"
+      responses:
+        204:
+          description: "Interacción eliminada"
+        404:
+          description: "Interacción no encontrada"
+  /leads/{leadId}/interactions:
+    get:
+      tags:
+        - "Interactions"
+      summary: "Obtener interacciones de un lead específico"
+      parameters:
+        - name: "leadId"
+          in: "path"
+          required: true
+          type: "string"
+          description: "ID del lead"
+      responses:
+        200:
+          description: "Lista de interacciones del lead"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/Interaction"
+        404:
+          description: "Lead no encontrado"
 definitions:
   Company:
     type: object
@@ -305,16 +409,42 @@ definitions:
         type: string
       phoneNumber:
         type: string
-      linkedinUrl:
+      # Campos de empresa
+      companyName:
         type: string
-      role:
+      industry:
         type: string
-      seniority:
+      companySize:
         type: string
+        description: "Tamaño de la empresa (e.g., '1-10', '11-50', '51-200')"
+      annualRevenue:
+        type: number
+        format: decimal
+        description: "Ingresos anuales estimados"
+      # Campos de seguimiento
       status:
         $ref: "#/definitions/LeadStatus"
-      companyId:
+      leadSource:
         type: string
+        description: "Origen del lead (e.g., 'website', 'referral', 'campaign')"
+      lastContactAt:
+        type: string
+        format: date-time
+      leadScore:
+        type: integer
+        description: "Puntuación del lead (0-100)"
+      # Campos de marketing
+      campaignId:
+        type: string
+      utmSource:
+        type: string
+      utmMedium:
+        type: string
+      utmCampaign:
+        type: string
+      acquisitionCost:
+        type: number
+        format: decimal
       createdAt:
         type: string
         format: date-time
@@ -330,7 +460,6 @@ definitions:
       - firstName
       - lastName
       - email
-      - companyId
     properties:
       firstName:
         type: string
@@ -340,14 +469,28 @@ definitions:
         type: string
       phoneNumber:
         type: string
-      linkedinUrl:
+      companyName:
         type: string
-      role:
+      industry:
         type: string
-      seniority:
+      companySize:
         type: string
-      companyId:
+      annualRevenue:
+        type: number
+      leadSource:
         type: string
+      leadScore:
+        type: integer
+      campaignId:
+        type: string
+      utmSource:
+        type: string
+      utmMedium:
+        type: string
+      utmCampaign:
+        type: string
+      acquisitionCost:
+        type: number
   Template:
     type: object
     properties:
@@ -425,13 +568,12 @@ definitions:
   LeadStatus:
     type: string
     enum:
-      - NUEVO
-      - CONTACTADO
-      - INTERESADO
-      - CALIFICADO
-      - OPORTUNIDAD
-      - CERRADO
-      - DESCARTADO
+      - NEW
+      - CONTACTED
+      - QUALIFIED
+      - OPPORTUNITY
+      - CUSTOMER
+      - LOST
   ContactStatus:
     type: string
     enum:
@@ -459,4 +601,54 @@ definitions:
       client_response:
         type: string
         description: "Respuesta esperada o ejemplo del cliente"
-        example: "Hola, me interesa saber más." 
+        example: "Hola, me interesa saber más."
+  Interaction:
+    type: object
+    properties:
+      id:
+        type: string
+      leadId:
+        type: string
+      type:
+        $ref: "#/definitions/InteractionType"
+      notes:
+        type: string
+      result:
+        type: string
+      scheduledAt:
+        type: string
+        format: date-time
+      completedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+  InteractionInput:
+    type: object
+    required:
+      - leadId
+      - type
+    properties:
+      leadId:
+        type: string
+      type:
+        $ref: "#/definitions/InteractionType"
+      notes:
+        type: string
+      result:
+        type: string
+      scheduledAt:
+        type: string
+        format: date-time
+  InteractionType:
+    type: string
+    enum:
+      - CALL
+      - EMAIL
+      - MEETING
+      - DEMO
+      - OTHER 
