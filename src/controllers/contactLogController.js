@@ -1,5 +1,9 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
+
+// Agregar verificación
+if (!prisma) {
+  throw new Error('Prisma client no inicializado');
+}
 
 // Validación de transición de estados
 const isValidStatusTransition = (currentStatus, newStatus) => {
@@ -23,9 +27,19 @@ const logError = (error, context) => {
   });
 };
 
+const debugPrisma = (action, result) => {
+  console.log(`[Prisma Debug] ${action}:`, {
+    success: !!result,
+    timestamp: new Date().toISOString()
+  });
+};
+
 const contactLogController = {
   getAllContactLogs: async (req, res) => {
     try {
+      debugPrisma('Init', prisma);
+      debugPrisma('Model', prisma.contact_Log);
+      
       const contactLogs = await prisma.contact_Log.findMany({
         include: {
           lead: {
@@ -42,17 +56,17 @@ const contactLogController = {
               title: true
             }
           }
-        },
-        orderBy: {
-          createdAt: 'desc'
         }
       });
+      
+      debugPrisma('Query Result', contactLogs);
       res.json(contactLogs);
     } catch (error) {
-      logError(error, 'getAllContactLogs');
+      console.error('Error en getAllContactLogs:', error);
       res.status(500).json({ 
         error: 'Error al obtener registros',
-        details: error.message 
+        details: error.message,
+        type: error.constructor.name
       });
     }
   },
