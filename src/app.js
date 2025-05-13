@@ -35,6 +35,6 @@ const contactLogRoutes = require('./routes/contactLogRoutes');
 app.use('/companies', companyRoutes);
 app.use('/leads', leadRoutes);
 app.use('/templates', templateRoutes);
-app.use('/api/contact-logs', contactLogRoutes);
+app.use('/contact-logs', contactLogRoutes);
 
 module.exports = app; 
