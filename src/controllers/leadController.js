@@ -1,5 +1,5 @@
 const prisma = require('../lib/prisma');
-const { logError } = require('../utils/errorHandler');
+const { logError, handlePrismaError } = require('../utils/errorHandler');
 
 // Obtener todos los leads
 exports.getAllLeads = async (req, res) => {
@@ -10,8 +10,19 @@ exports.getAllLeads = async (req, res) => {
     }
 
     const leads = await prisma.lead.findMany({
-      where: { deletedAt: null },
-      include: {
+      where: { 
+        deletedAt: null 
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        phoneNumber: true,
+        status: true,
+        companyId: true,
+        createdAt: true,
+        updatedAt: true,
         company: {
           select: {
             id: true,
@@ -28,6 +39,13 @@ exports.getAllLeads = async (req, res) => {
     });
   } catch (error) {
     logError(error, 'getAllLeads');
+    
+    // Manejar errores específicos de Prisma
+    if (error.code?.startsWith('P2')) {
+      const { status, message, details } = handlePrismaError(error);
+      return res.status(status).json({ error: message, details });
+    }
+
     res.status(500).json({ 
       error: 'Error al obtener los leads',
       details: error.message,

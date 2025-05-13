@@ -37,4 +37,20 @@ app.use('/leads', leadRoutes);
 app.use('/templates', templateRoutes);
 app.use('/contact-logs', contactLogRoutes);
 
+// Implementar manejo de reintentos en el cliente
+const fetchWithRetry = async (url, options = {}, maxRetries = 3) => {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const response = await fetch(url, options);
+      if (response.ok) return response;
+      if (response.status !== 502) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      // Esperar antes de reintentar (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+    } catch (error) {
+      if (i === maxRetries - 1) throw error;
+    }
+  }
+};
+
 module.exports = app; 
