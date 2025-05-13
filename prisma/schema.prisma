@@ -3,7 +3,7 @@
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearchPostgres"]
+  previewFeatures = ["fullTextSearch"]
   output          = "../node_modules/.prisma/client"
 }
 
@@ -30,7 +30,7 @@ model Lead {
   lastName        String
   email           String
   phoneNumber     String?
-  status          LeadStatus     @default(NEW)
+  status          LeadStatus     @default(NUEVO)
   companyId       String
   company         Company        @relation(fields: [companyId], references: [id])
   contactLogs     Contact_Log[]
@@ -105,12 +105,12 @@ model Interaction {
 }
 
 enum LeadStatus {
-  NEW
-  CONTACTED
-  QUALIFIED
-  OPPORTUNITY
-  CUSTOMER
-  LOST
+  NUEVO
+  CONTACTADO
+  CALIFICADO
+  OPORTUNIDAD
+  CLIENTE
+  PERDIDO
 }
 
 enum ContactStatus {
