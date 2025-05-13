@@ -1,57 +1,78 @@
 const { PrismaClient } = require('@prisma/client');
 
-let prisma;
-
-const initPrisma = () => {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL no está definida en las variables de entorno');
+const prisma = global.prisma || new PrismaClient({
+  log: ['query', 'error', 'warn'],
+  errorFormat: 'pretty',
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL
+    }
+  },
+  __internal: {
+    engine: {
+      connectionTimeout: 60000,    // 60 segundos
+      connectionLimit: 10,         // Límite de conexiones concurrentes
+      queueLimit: 15              // Cola para manejar picos de tráfico
+    }
   }
+});
 
+// Middleware para logging y manejo de errores
+prisma.$use(async (params, next) => {
+  const startTime = Date.now();
   try {
-    prisma = new PrismaClient({
-      datasources: {
-        db: {
-          url: process.env.DATABASE_URL
-        }
-      },
-      log: ['query', 'error', 'warn'],
-      errorFormat: 'pretty'
-    });
-
-    // Middleware para logging
-    prisma.$use(async (params, next) => {
-      const before = Date.now();
-      const result = await next(params);
-      const after = Date.now();
-      
-      console.log(`Prisma Query ${params.model}.${params.action} tomó ${after - before}ms`);
-      return result;
-    });
-
-    // Verificar conexión
-    return prisma.$connect()
-      .then(() => {
-        console.log('✅ Conexión a la base de datos establecida');
-        return prisma;
-      })
-      .catch((error) => {
-        console.error('❌ Error al conectar con la base de datos:', error);
-        throw error;
-      });
-
+    const result = await next(params);
+    const endTime = Date.now();
+    console.log(`[Prisma] ${params.model}.${params.action} completado en ${endTime - startTime}ms`);
+    return result;
   } catch (error) {
-    console.error('❌ Error al inicializar Prisma:', error);
+    console.error(`[Prisma Error] ${params.model}.${params.action} falló:`, error);
+    
+    // Manejo específico de errores de Prisma
+    if (error?.code?.startsWith('P2')) {
+      if (error.code === 'P2021' || error.code === 'P2023') {
+        console.log('[Prisma] Intentando reconexión...');
+        await prisma.$connect();
+        return next(params);
+      }
+    }
     throw error;
   }
-};
+});
 
-// Inicializar Prisma
-if (!prisma) {
-  initPrisma()
-    .catch((error) => {
-      console.error('❌ Error fatal al inicializar Prisma:', error);
-      process.exit(1);
-    });
+// Manejo de señales del sistema
+process.on('SIGINT', async () => {
+  console.log('[Prisma] Desconectando debido a SIGINT...');
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('[Prisma] Desconectando debido a SIGTERM...');
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+// Verificación inicial de conexión
+async function verifyConnection() {
+  try {
+    await prisma.$connect();
+    console.log('[Prisma] ✅ Conexión establecida exitosamente');
+  } catch (error) {
+    console.error('[Prisma] ❌ Error al establecer conexión:', error);
+    throw error;
+  }
 }
+
+// Solo en desarrollo, asignar a global
+if (process.env.NODE_ENV === 'development') {
+  global.prisma = prisma;
+}
+
+// Verificar conexión al iniciar
+verifyConnection().catch((error) => {
+  console.error('[Prisma] Error fatal en la inicialización:', error);
+  process.exit(1);
+});
 
 module.exports = prisma; 
