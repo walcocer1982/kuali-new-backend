@@ -2,6 +2,29 @@
  * @swagger
  * components:
  *   schemas:
+ *     Lead:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *         firstName:
+ *           type: string
+ *         lastName:
+ *           type: string
+ *         email:
+ *           type: string
+ *           format: email
+ *     
+ *     Template:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *         title:
+ *           type: string
+ *     
  *     ContactLog:
  *       type: object
  *       required:
@@ -33,6 +56,12 @@
  *           type: string
  *           format: date-time
  *           description: Fecha de última actualización
+ *         lead:
+ *           $ref: '#/components/schemas/Lead'
+ *           description: Información del lead asociado
+ *         template:
+ *           $ref: '#/components/schemas/Template'
+ *           description: Información de la plantilla asociada
  * 
  *   responses:
  *     ValidationError:
@@ -44,8 +73,13 @@
  *             properties:
  *               error:
  *                 type: string
+ *                 example: "Error de validación"
  *               details:
  *                 type: string
+ *                 example: "El campo leadId es requerido"
+ *               type:
+ *                 type: string
+ *                 example: "ValidationError"
  *     NotFoundError:
  *       description: Recurso no encontrado
  *       content:
@@ -55,8 +89,30 @@
  *             properties:
  *               error:
  *                 type: string
+ *                 example: "Registro no encontrado"
+ *               details:
+ *                 type: string
+ *                 example: "No existe un registro con ID: 123e4567-e89b-12d3-a456-426614174000"
+ *     TransitionError:
+ *       description: Error en la transición de estado
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               error:
+ *                 type: string
+ *                 example: "Transición de estado inválida"
+ *               details:
+ *                 type: string
+ *                 example: "No se puede cambiar de ENTREGADO a PENDIENTE"
+ *               allowedTransitions:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["LEIDO", "FALLIDO"]
  * 
- * /api/contact-logs:
+ * /contact-logs:
  *   get:
  *     tags: [Contact Logs]
  *     summary: Obtener todos los registros de contacto
@@ -69,6 +125,23 @@
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/ContactLog'
+ *             example:
+ *               - id: "123e4567-e89b-12d3-a456-426614174000"
+ *                 leadId: "123e4567-e89b-12d3-a456-426614174001"
+ *                 templateId: "123e4567-e89b-12d3-a456-426614174002"
+ *                 status: "PENDIENTE"
+ *                 createdAt: "2024-03-20T10:00:00Z"
+ *                 updatedAt: "2024-03-20T10:00:00Z"
+ *                 lead:
+ *                   id: "123e4567-e89b-12d3-a456-426614174001"
+ *                   firstName: "John"
+ *                   lastName: "Doe"
+ *                   email: "john@example.com"
+ *                 template:
+ *                   id: "123e4567-e89b-12d3-a456-426614174002"
+ *                   title: "Bienvenida"
+ *       500:
+ *         $ref: '#/components/responses/ValidationError'
  *   post:
  *     tags: [Contact Logs]
  *     summary: Crear nuevo registro de contacto
@@ -91,15 +164,22 @@
  *               status:
  *                 type: string
  *                 enum: [PENDIENTE, ENVIADO, ENTREGADO, LEIDO, RESPONDIDO, FALLIDO]
+ *           example:
+ *             leadId: "123e4567-e89b-12d3-a456-426614174001"
+ *             templateId: "123e4567-e89b-12d3-a456-426614174002"
  *     responses:
  *       201:
  *         description: Registro creado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ContactLog'
  *       400:
- *         description: Datos inválidos
+ *         $ref: '#/components/responses/ValidationError'
  *       404:
- *         description: Lead o Template no encontrado
+ *         $ref: '#/components/responses/NotFoundError'
  * 
- * /api/contact-logs/{id}:
+ * /contact-logs/{id}:
  *   parameters:
  *     - in: path
  *       name: id
@@ -114,8 +194,12 @@
  *     responses:
  *       200:
  *         description: Registro de contacto encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ContactLog'
  *       404:
- *         description: Registro no encontrado
+ *         $ref: '#/components/responses/NotFoundError'
  *   put:
  *     tags: [Contact Logs]
  *     summary: Actualizar estado del registro
@@ -131,15 +215,29 @@
  *               status:
  *                 type: string
  *                 enum: [PENDIENTE, ENVIADO, ENTREGADO, LEIDO, RESPONDIDO, FALLIDO]
+ *           example:
+ *             status: "ENVIADO"
  *     responses:
  *       200:
  *         description: Registro actualizado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ContactLog'
  *       400:
- *         description: Estado inválido
+ *         $ref: '#/components/responses/TransitionError'
  *       404:
- *         description: Registro no encontrado
+ *         $ref: '#/components/responses/NotFoundError'
+ *   delete:
+ *     tags: [Contact Logs]
+ *     summary: Eliminar registro de contacto
+ *     responses:
+ *       204:
+ *         description: Registro eliminado exitosamente
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  * 
- * /api/contact-logs/lead/{leadId}:
+ * /contact-logs/lead/{leadId}:
  *   get:
  *     tags: [Contact Logs]
  *     summary: Obtener registros por Lead
@@ -153,8 +251,16 @@
  *     responses:
  *       200:
  *         description: Lista de registros del lead
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ContactLog'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  * 
- * /api/contact-logs/template/{templateId}:
+ * /contact-logs/template/{templateId}:
  *   get:
  *     tags: [Contact Logs]
  *     summary: Obtener registros por Template
@@ -168,4 +274,12 @@
  *     responses:
  *       200:
  *         description: Lista de registros del template
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/ContactLog'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
  */ 
