@@ -1,12 +1,11 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["fullTextSearchPostgres"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  connectionLimit = 20
 }
 
 model Company {
@@ -22,39 +21,31 @@ model Company {
 }
 
 model Lead {
-  id            String   @id @default(uuid())
-  firstName     String
-  lastName      String
-  email         String   @unique
-  phoneNumber   String?
-  
-  // Campos de empresa
-  companyId     String
-  companyName   String?
-  industry      String?
-  companySize   String?  // (e.g., "1-10", "11-50", "51-200", etc.)
-  annualRevenue Decimal? // Ingresos anuales estimados
-  
-  // Campos de seguimiento
-  status        LeadStatus @default(NEW)
-  leadSource    String?    // (e.g., "website", "referral", "campaign")
-  lastContactAt DateTime?
-  leadScore     Int?       // Puntuación del lead (0-100)
-  
-  // Campos de marketing
-  campaignId    String?
-  utmSource     String?
-  utmMedium     String?
-  utmCampaign   String?
+  id              String        @id @default(uuid())
+  firstName       String
+  lastName        String
+  email           String        @unique
+  phoneNumber     String?
+  status          LeadStatus    @default(NEW)
+  companyId       String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
   acquisitionCost Decimal?
-  
-  // Relaciones
-  interactions  Interaction[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  deletedAt     DateTime?
-  contactLogs   Contact_Log[]
-  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  annualRevenue   Decimal?
+  campaignId      String?
+  companyName     String?
+  companySize     String?
+  industry        String?
+  lastContactAt   DateTime?
+  leadScore       Int?
+  leadSource      String?
+  utmCampaign     String?
+  utmMedium       String?
+  utmSource       String?
+  contactLogs     Contact_Log[]
+  Interaction     Interaction[]
+  company         Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([firstName, lastName])
@@ -64,29 +55,42 @@ model Template {
   id          String        @id @default(uuid())
   title       String
   body        String
-  stepsJson   Json?        @map("steps")
-  tags        String[]     @default([])
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  stepsJson   Json?         @map("steps")
+  tags        String[]      @default([])
   contactLogs Contact_Log[]
 
-  @@map("Template")
   @@index([title])
   @@index([tags])
+  @@map("Template")
 }
 
 model Contact_Log {
   id         String        @id @default(uuid())
-  leadId     String        // Relación con Lead
-  templateId String        // Relación con Template
-  status     ContactStatus @default(PENDIENTE)
+  leadId     String
+  templateId String
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
+  status     ContactStatus @default(PENDING)
   lead       Lead          @relation(fields: [leadId], references: [id], onDelete: Cascade)
   template   Template      @relation(fields: [templateId], references: [id], onDelete: Cascade)
 
   @@index([status])
   @@index([createdAt])
+}
+
+model Interaction {
+  id          String          @id
+  leadId      String
+  type        InteractionType
+  notes       String?
+  result      String?
+  scheduledAt DateTime?
+  completedAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime
+  Lead        Lead            @relation(fields: [leadId], references: [id])
 }
 
 enum LeadStatus {
@@ -99,25 +103,12 @@ enum LeadStatus {
 }
 
 enum ContactStatus {
-  PENDIENTE
-  ENVIADO
-  ENTREGADO
-  LEIDO
-  RESPONDIDO
-  FALLIDO
-}
-
-model Interaction {
-  id          String    @id @default(uuid())
-  leadId      String
-  lead        Lead      @relation(fields: [leadId], references: [id])
-  type        InteractionType
-  notes       String?   @db.Text
-  result      String?
-  scheduledAt DateTime?
-  completedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  REPLIED
+  FAILED
 }
 
 enum InteractionType {
