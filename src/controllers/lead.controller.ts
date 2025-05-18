@@ -16,11 +16,28 @@ export class LeadController {
             // Limpiamos el número de teléfono de entrada
             const cleanedPhone = String(phone).replace(/[\s\+\-\(\)]/g, '');
             
-            // Creamos un patrón que sea flexible con espacios y caracteres especiales
-            const phonePattern = cleanedPhone.split('').join('[\\s\\+\\-\\(\\)]*');
+            // Si el número no incluye código de país, creamos dos patrones
+            let phonePatterns = [];
             
+            // Patrón 1: Número exacto como fue ingresado
+            phonePatterns.push(cleanedPhone.split('').join('[\\s\\+\\-\\(\\)]*'));
+            
+            // Patrón 2: Si no empieza con 51, agregamos el patrón con 51 opcional
+            if (!cleanedPhone.startsWith('51')) {
+                const withCountryCode = `51${cleanedPhone}`;
+                phonePatterns.push(withCountryCode.split('').join('[\\s\\+\\-\\(\\)]*'));
+            }
+            
+            // Patrón 3: Si empieza con 51, también buscamos sin el código de país
+            if (cleanedPhone.startsWith('51')) {
+                const withoutCountryCode = cleanedPhone.substring(2);
+                phonePatterns.push(withoutCountryCode.split('').join('[\\s\\+\\-\\(\\)]*'));
+            }
+
             const leads = await Lead.find({ 
-                phoneNumber: { $regex: phonePattern, $options: 'i' }
+                $or: phonePatterns.map(pattern => ({
+                    phoneNumber: { $regex: pattern, $options: 'i' }
+                }))
             });
 
             return res.status(200).json({
