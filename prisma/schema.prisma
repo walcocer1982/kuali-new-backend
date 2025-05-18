@@ -1,10 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearch"]
   output          = "../node_modules/.prisma/client"
+  previewFeatures = ["fullTextSearch"]
 }
 
 datasource db {
@@ -16,61 +13,54 @@ model Company {
   id        String    @id @default(uuid())
   name      String
   sector    String?
-  leads     Lead[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
+  leads     Lead[]
 
   @@index([name])
 }
 
 model Lead {
-  id              String         @id @default(uuid())
+  id              String        @id @default(uuid())
   firstName       String
   lastName        String
   email           String
   phoneNumber     String?
-  status          LeadStatus     @default(NUEVO)
+  status          LeadStatus    @default(NUEVO)
   companyId       String
-  company         Company        @relation(fields: [companyId], references: [id])
-  contactLogs     Contact_Log[]
-  interactions    Interaction[]
-  
-  // Campos de empresa
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+  acquisitionCost Decimal?
+  annualRevenue   Decimal?
+  campaignId      String?
   companyName     String?
-  industry        String?
   companySize     String?
-  annualRevenue    Decimal?
-  
-  // Campos de seguimiento
-  leadSource      String?
+  industry        String?
   lastContactAt   DateTime?
   leadScore       Int?
-  
-  // Campos de marketing
-  campaignId      String?
-  utmSource       String?
-  utmMedium       String?
+  leadSource      String?
   utmCampaign     String?
-  acquisitionCost Decimal?
-  
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  deletedAt       DateTime?
+  utmMedium       String?
+  utmSource       String?
+  contactLogs     Contact_Log[]
+  interactions    Interaction[]
+  company         Company       @relation(fields: [companyId], references: [id])
 
   @@index([status])
   @@index([firstName, lastName])
 }
 
 model Template {
-  id            String        @id @default(uuid())
-  title         String
-  body          String
-  stepsJson     Json?         @map("steps")
-  tags          String[]      @default([])
-  contactLogs   Contact_Log[]
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id          String        @id @default(uuid())
+  title       String
+  body        String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  stepsJson   Json?         @map("steps")
+  tags        String[]      @default([])
+  contactLogs Contact_Log[]
 
   @@index([title])
   @@index([tags])
@@ -78,30 +68,30 @@ model Template {
 }
 
 model Contact_Log {
-  id          String        @id @default(uuid())
-  leadId      String
-  lead        Lead          @relation(fields: [leadId], references: [id])
-  templateId  String
-  template    Template      @relation(fields: [templateId], references: [id])
-  status      ContactStatus @default(PENDIENTE)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id         String        @id @default(uuid())
+  leadId     String
+  templateId String
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  status     ContactStatus @default(PENDIENTE)
+  lead       Lead          @relation(fields: [leadId], references: [id])
+  template   Template      @relation(fields: [templateId], references: [id])
 
   @@index([status])
   @@index([createdAt])
 }
 
 model Interaction {
-  id            String          @id @default(uuid())
-  leadId        String
-  lead          Lead            @relation(fields: [leadId], references: [id])
-  type          InteractionType
-  notes         String?
-  result        String?
-  scheduledAt   DateTime?
-  completedAt   DateTime?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id          String          @id @default(uuid())
+  leadId      String
+  type        InteractionType
+  notes       String?
+  result      String?
+  scheduledAt DateTime?
+  completedAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  lead        Lead            @relation(fields: [leadId], references: [id])
 }
 
 enum LeadStatus {

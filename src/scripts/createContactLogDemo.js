@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 async function createDemoData() {
   try {
@@ -19,7 +18,7 @@ async function createDemoData() {
         email: 'john.doe@demo.com',
         phoneNumber: '+51987654321',
         companyId: company.id,
-        status: 'NEW'
+        status: 'NUEVO'
       }
     });
     console.log('Lead created:', lead);
@@ -39,7 +38,7 @@ async function createDemoData() {
       data: {
         leadId: lead.id,
         templateId: template.id,
-        status: 'PENDING'
+        status: 'PENDIENTE'
       },
       include: {
         lead: true,
@@ -50,9 +49,13 @@ async function createDemoData() {
 
   } catch (error) {
     console.error('Error:', error);
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
-createDemoData(); 
+// Ejecutar si es llamado directamente
+if (require.main === module) {
+  createDemoData()
+    .catch(console.error);
+}
+
+module.exports = createDemoData; 
