@@ -69,12 +69,13 @@ paths:
       tags:
         - "Leads"
       summary: "Buscar leads por número de teléfono"
+      description: "Búsqueda flexible de leads por número de teléfono. Funciona con o sin código de país (+51), espacios, paréntesis y guiones. Ejemplos válidos: '+51 982 014 786', '982014786', '(51) 982-014-786'. Si se busca sin código de país, encontrará números con y sin el prefijo +51."
       parameters:
         - name: "phone"
           in: "query"
           required: true
           type: "string"
-          description: "Número de teléfono para buscar leads"
+          description: "Número de teléfono para buscar leads. Funciona con o sin código de país (+51). Ejemplos: '982014786' encontrará tanto '+51 982014786' como '982014786'"
       responses:
         200:
           description: "Lista de leads encontrados"
