@@ -241,6 +241,7 @@
  *   get:
  *     tags: [Contact Logs]
  *     summary: Obtener registros por Lead
+ *     description: Obtiene todos los registros de contacto asociados a un lead específico, ordenados por fecha de creación descendente
  *     parameters:
  *       - in: path
  *         name: leadId
@@ -248,17 +249,79 @@
  *         schema:
  *           type: string
  *           format: uuid
+ *         description: ID del lead para buscar sus registros de contacto
  *     responses:
  *       200:
- *         description: Lista de registros del lead
+ *         description: Lista de registros del lead encontrados exitosamente
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/ContactLog'
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     lead:
+ *                       $ref: '#/components/schemas/Lead'
+ *                     contactLogs:
+ *                       type: array
+ *                       items:
+ *                         $ref: '#/components/schemas/ContactLog'
+ *                     total:
+ *                       type: integer
+ *                       description: Número total de registros encontrados
+ *                       example: 5
+ *             example:
+ *               success: true
+ *               data:
+ *                 lead:
+ *                   id: "123e4567-e89b-12d3-a456-426614174001"
+ *                   firstName: "John"
+ *                   lastName: "Doe"
+ *                   email: "john@example.com"
+ *                 contactLogs:
+ *                   - id: "123e4567-e89b-12d3-a456-426614174000"
+ *                     leadId: "123e4567-e89b-12d3-a456-426614174001"
+ *                     templateId: "123e4567-e89b-12d3-a456-426614174002"
+ *                     status: "ENVIADO"
+ *                     createdAt: "2024-03-20T10:00:00Z"
+ *                     updatedAt: "2024-03-20T10:00:00Z"
+ *                     template:
+ *                       id: "123e4567-e89b-12d3-a456-426614174002"
+ *                       title: "Bienvenida"
+ *                 total: 1
  *       404:
- *         $ref: '#/components/responses/NotFoundError'
+ *         description: Lead no encontrado
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   example: "Lead no encontrado"
+ *                 details:
+ *                   type: string
+ *                   example: "No existe un lead con ID: 123e4567-e89b-12d3-a456-426614174001"
+ *       500:
+ *         description: Error del servidor
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 error:
+ *                   type: string
+ *                   example: "Error al obtener los registros de contacto"
+ *                 details:
+ *                   type: string
+ *                   example: "Error interno del servidor"
  * 
  * /contact-logs/template/{templateId}:
  *   get:
