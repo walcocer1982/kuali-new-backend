@@ -64,6 +64,54 @@ paths:
           description: "Lead creado"
           schema:
             $ref: "#/definitions/Lead"
+  /leads/search:
+    get:
+      tags:
+        - "Leads"
+      summary: "Buscar leads por número de teléfono"
+      parameters:
+        - name: "phone"
+          in: "query"
+          required: true
+          type: "string"
+          description: "Número de teléfono para buscar leads"
+      responses:
+        200:
+          description: "Lista de leads encontrados"
+          schema:
+            type: "object"
+            properties:
+              success:
+                type: "boolean"
+                example: true
+              data:
+                type: "array"
+                items:
+                  $ref: "#/definitions/Lead"
+        400:
+          description: "Error de validación"
+          schema:
+            type: "object"
+            properties:
+              success:
+                type: "boolean"
+                example: false
+              message:
+                type: "string"
+                example: "El número de teléfono es requerido"
+        500:
+          description: "Error del servidor"
+          schema:
+            type: "object"
+            properties:
+              success:
+                type: "boolean"
+                example: false
+              message:
+                type: "string"
+                example: "Error al buscar leads"
+              error:
+                type: "string"
   /templates:
     get:
       tags:
@@ -595,12 +643,12 @@ definitions:
   LeadStatus:
     type: string
     enum:
-      - NEW
-      - CONTACTED
-      - QUALIFIED
-      - OPPORTUNITY
-      - CUSTOMER
-      - LOST
+      - NUEVO
+      - CONTACTADO
+      - CALIFICADO
+      - OPORTUNIDAD
+      - CLIENTE
+      - PERDIDO
   ContactStatus:
     type: string
     enum:
