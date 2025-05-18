@@ -1,24 +1,58 @@
-const prisma = require('../prismaClient');
+const prisma = require('../lib/prisma');
+const { logError, handlePrismaError } = require('../utils/errorHandler');
 
-// Obtener todas las compañías
+// Obtener todas las empresas
 exports.getAllCompanies = async (req, res) => {
   try {
-    const companies = await prisma.company.findMany();
-    res.json(companies);
+    const companies = await prisma.company.findMany({
+      where: { 
+        deletedAt: null 
+      }
+    });
+    
+    res.json({
+      status: 'success',
+      data: companies,
+      count: companies.length
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener las compañías' });
+    logError(error, 'getAllCompanies');
+    
+    if (error.code?.startsWith('P2')) {
+      const { status, message, details } = handlePrismaError(error);
+      return res.status(status).json({ error: message, details });
+    }
+    
+    res.status(500).json({ 
+      error: 'Error al obtener las empresas',
+      details: error.message
+    });
   }
 };
 
-// Crear una nueva compañía
+// Crear una nueva empresa
 exports.createCompany = async (req, res) => {
   try {
     const newCompany = await prisma.company.create({
-      data: req.body,
+      data: req.body
     });
-    res.status(201).json(newCompany);
+    
+    res.status(201).json({
+      status: 'success',
+      data: newCompany
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Error al crear la compañía' });
+    logError(error, 'createCompany');
+    
+    if (error.code?.startsWith('P2')) {
+      const { status, message, details } = handlePrismaError(error);
+      return res.status(status).json({ error: message, details });
+    }
+    
+    res.status(500).json({ 
+      error: 'Error al crear la empresa',
+      details: error.message
+    });
   }
 };
 
