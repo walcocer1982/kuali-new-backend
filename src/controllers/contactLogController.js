@@ -216,15 +216,62 @@ const contactLogController = {
   getContactLogsByLead: async (req, res) => {
     try {
       const { leadId } = req.params;
+      
+      // Verificar si el lead existe
+      const lead = await prisma.lead.findUnique({
+        where: { id: leadId },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true
+        }
+      });
+
+      if (!lead) {
+        return res.status(404).json({ 
+          error: 'Lead no encontrado',
+          details: `No existe un lead con ID: ${leadId}`
+        });
+      }
+
+      // Obtener los contact logs con información completa
       const contactLogs = await prisma.contact_Log.findMany({
         where: { leadId },
         include: {
-          template: true
+          template: {
+            select: {
+              id: true,
+              title: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
         }
       });
-      res.json(contactLogs);
+
+      res.json({
+        success: true,
+        data: {
+          lead,
+          contactLogs,
+          total: contactLogs.length
+        }
+      });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      logError(error, 'getContactLogsByLead');
+      
+      if (error.code?.startsWith('P2')) {
+        const { status, message, details } = handlePrismaError(error);
+        return res.status(status).json({ error: message, details });
+      }
+      
+      res.status(500).json({ 
+        success: false,
+        error: 'Error al obtener los registros de contacto',
+        details: error.message
+      });
     }
   },
 
