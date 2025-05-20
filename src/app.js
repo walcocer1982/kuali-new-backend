@@ -41,12 +41,13 @@ const contactLogRoutes = require('./routes/contactLogRoutes');
 const productRoutes = require('./routes/productRoutes');
 const templateInteractionRoutes = require('./routes/templateInteractionRoutes');
 
-app.use('/api/companies', companyRoutes);
-app.use('/api/leads', leadRoutes);
-app.use('/api/templates', templateRoutes);
-app.use('/api/contact-logs', contactLogRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/template-interactions', templateInteractionRoutes);
+// Configuración de rutas con el prefijo /api/v1
+app.use('/api/v1/companies', companyRoutes);
+app.use('/api/v1/leads', leadRoutes);
+app.use('/api/v1/templates', templateRoutes);
+app.use('/api/v1/contact-logs', contactLogRoutes);
+app.use('/api/v1/products', productRoutes);
+app.use('/api/v1/template-interactions', templateInteractionRoutes);
 
 // Implementar manejo de reintentos en el cliente
 const fetchWithRetry = async (url, options = {}, maxRetries = 3) => {
