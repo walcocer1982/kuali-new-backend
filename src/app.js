@@ -12,6 +12,13 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Error interno del servidor' });
+});
 
 // Health Check endpoint
 app.get('/health', (req, res) => {
@@ -31,11 +38,15 @@ const companyRoutes = require('./routes/companyRoutes');
 const leadRoutes = require('./routes/leadRoutes');
 const templateRoutes = require('./routes/templateRoutes');
 const contactLogRoutes = require('./routes/contactLogRoutes');
+const productRoutes = require('./routes/productRoutes');
+const templateInteractionRoutes = require('./routes/templateInteractionRoutes');
 
-app.use('/companies', companyRoutes);
-app.use('/leads', leadRoutes);
-app.use('/templates', templateRoutes);
-app.use('/contact-logs', contactLogRoutes);
+app.use('/api/companies', companyRoutes);
+app.use('/api/leads', leadRoutes);
+app.use('/api/templates', templateRoutes);
+app.use('/api/contact-logs', contactLogRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/template-interactions', templateInteractionRoutes);
 
 // Implementar manejo de reintentos en el cliente
 const fetchWithRetry = async (url, options = {}, maxRetries = 3) => {
