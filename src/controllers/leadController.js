@@ -162,9 +162,15 @@ class LeadController {
                 });
             }
 
+            // Normalizar el número de teléfono
+            let normalizedPhone = phone.trim().replace(/\s+/g, ''); // Eliminar todos los espacios
+            if (!normalizedPhone.startsWith('+')) {
+                normalizedPhone = '+' + normalizedPhone;
+            }
+
             const lead = await prisma.lead.findFirst({
                 where: {
-                    phoneNumber: phone,
+                    phoneNumber: normalizedPhone,
                     deletedAt: null
                 },
                 include: {
@@ -181,7 +187,7 @@ class LeadController {
             if (!lead) {
                 return res.status(404).json({
                     error: 'Lead no encontrado',
-                    details: `No existe un lead con el teléfono: ${phone}`
+                    details: `No existe un lead con el teléfono: ${normalizedPhone}`
                 });
             }
 
