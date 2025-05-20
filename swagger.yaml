@@ -10,51 +10,51 @@ servers:
 
 components:
   schemas:
-  Company:
-    type: object
-    properties:
-      id:
-        type: string
+    Company:
+      type: object
+      properties:
+        id:
+          type: string
           format: uuid
-      name:
-        type: string
-      sector:
-        type: string
-      createdAt:
-        type: string
-        format: date-time
-      updatedAt:
-        type: string
-        format: date-time
-      deletedAt:
-        type: string
-        format: date-time
+        name:
+          type: string
+        sector:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        deletedAt:
+          type: string
+          format: date-time
           nullable: true
 
-  CompanyInput:
-    type: object
-    required:
-      - name
-    properties:
-      name:
-        type: string
-      sector:
-        type: string
+    CompanyInput:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        sector:
+          type: string
 
-  Lead:
-    type: object
-    properties:
-      id:
-        type: string
+    Lead:
+      type: object
+      properties:
+        id:
+          type: string
           format: uuid
-      firstName:
-        type: string
-      lastName:
-        type: string
-      email:
-        type: string
-      phoneNumber:
-        type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        phoneNumber:
+          type: string
         whatsappId:
           type: string
           description: ID único de WhatsApp
@@ -64,18 +64,18 @@ components:
           description: Fecha del último mensaje
         status:
           $ref: '#/components/schemas/LeadStatus'
-      companyId:
-        type: string
+        companyId:
+          type: string
           format: uuid
-      companyName:
-        type: string
-      industry:
-        type: string
-      companySize:
-        type: string
-      annualRevenue:
-        type: number
-        format: decimal
+        companyName:
+          type: string
+        industry:
+          type: string
+        companySize:
+          type: string
+        annualRevenue:
+          type: number
+          format: decimal
         acquisitionCost:
           type: number
           format: decimal
@@ -83,73 +83,73 @@ components:
           type: integer
           minimum: 0
           maximum: 100
-      leadSource:
-        type: string
-      lastContactAt:
-        type: string
-        format: date-time
-      campaignId:
-        type: string
-      utmSource:
-        type: string
-      utmMedium:
-        type: string
-      utmCampaign:
-        type: string
-      createdAt:
-        type: string
-        format: date-time
-      updatedAt:
-        type: string
-        format: date-time
-      deletedAt:
-        type: string
-        format: date-time
+        leadSource:
+          type: string
+        lastContactAt:
+          type: string
+          format: date-time
+        campaignId:
+          type: string
+        utmSource:
+          type: string
+        utmMedium:
+          type: string
+        utmCampaign:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        deletedAt:
+          type: string
+          format: date-time
           nullable: true
 
-  LeadInput:
-    type: object
-    required:
-      - firstName
-      - lastName
-      - email
-      - companyId
-    properties:
-      firstName:
-        type: string
-      lastName:
-        type: string
-      email:
+    LeadInput:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - companyId
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
           type: string
         phoneNumber:
-        type: string
-      companyId:
-        type: string
+          type: string
+        companyId:
+          type: string
           format: uuid
         status:
           $ref: '#/components/schemas/LeadStatus'
-      companyName:
-        type: string
-      industry:
-        type: string
-      companySize:
-        type: string
-      annualRevenue:
-        type: number
+        companyName:
+          type: string
+        industry:
+          type: string
+        companySize:
+          type: string
+        annualRevenue:
+          type: number
         acquisitionCost:
           type: number
         leadScore:
           type: integer
-      leadSource:
-        type: string
-      campaignId:
-        type: string
-      utmSource:
-        type: string
-      utmMedium:
-        type: string
-      utmCampaign:
-        type: string
+        leadSource:
+          type: string
+        campaignId:
+          type: string
+        utmSource:
+          type: string
+        utmMedium:
+          type: string
+        utmCampaign:
+          type: string
 
     Product:
       type: object
@@ -182,109 +182,105 @@ components:
         description:
           type: string
 
-  Template:
-    type: object
-    properties:
-      id:
-        type: string
+    Template:
+      type: object
+      properties:
+        id:
+          type: string
           format: uuid
-      title:
-        type: string
-      body:
-        type: string
+        title:
+          type: string
+        body:
+          type: string
         productId:
           type: string
           format: uuid
         type:
           $ref: '#/components/schemas/TemplateType'
-      stepsJson:
-          type: object
-        nullable: true
-      tags:
-        type: array
-        items:
-          type: string
-      createdAt:
-        type: string
-        format: date-time
-      updatedAt:
-        type: string
-        format: date-time
-
-  TemplateInput:
-    type: object
-    required:
-      - title
-      - body
-    properties:
-      title:
-        type: string
-      body:
-        type: string
-        productId:
-          type: string
-          format: uuid
-        type:
-          $ref: '#/components/schemas/TemplateType'
-      tags:
-        type: array
-        items:
-          type: string
         stepsJson:
-    type: object
-
-  Interaction:
-    type: object
-    properties:
-      id:
-        type: string
-          format: uuid
-      leadId:
-        type: string
-          format: uuid
-      type:
-          $ref: '#/components/schemas/InteractionType'
-      notes:
-        type: string
-      result:
-        type: string
-        whatsappStatus:
+          type: object
+          nullable: true
+        tags:
+          type: array
+          items:
+            type: string
+        createdAt:
           type: string
-          description: Estado del mensaje en WhatsApp
-        messageId:
+          format: date-time
+        updatedAt:
           type: string
-          description: ID del mensaje en WhatsApp
-      scheduledAt:
-        type: string
-        format: date-time
-      completedAt:
-        type: string
-        format: date-time
-      createdAt:
-        type: string
-        format: date-time
-      updatedAt:
-        type: string
-        format: date-time
+          format: date-time
 
-  InteractionInput:
-    type: object
-    required:
-      - leadId
-      - type
-    properties:
-      leadId:
-        type: string
+    TemplateInput:
+      type: object
+      required:
+        - title
+        - body
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        productId:
+          type: string
           format: uuid
-      type:
+        type:
+          $ref: '#/components/schemas/TemplateType'
+        stepsJson:
+          type: object
+
+    Interaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        leadId:
+          type: string
+          format: uuid
+        type:
           $ref: '#/components/schemas/InteractionType'
-      notes:
-        type: string
-      result:
-        type: string
-      scheduledAt:
-        type: string
-        format: date-time
+        notes:
+          type: string
+        result:
+          type: string
+          whatsappStatus:
+            type: string
+            description: Estado del mensaje en WhatsApp
+          messageId:
+            type: string
+            description: ID del mensaje en WhatsApp
+        scheduledAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    InteractionInput:
+      type: object
+      required:
+        - leadId
+        - type
+      properties:
+        leadId:
+          type: string
+          format: uuid
+        type:
+          $ref: '#/components/schemas/InteractionType'
+        notes:
+          type: string
+        result:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
 
     ContactLog:
       type: object
@@ -341,13 +337,13 @@ components:
         - RESPONDIDO
         - FALLIDO
 
-  InteractionType:
-    type: string
-    enum:
+    InteractionType:
+      type: string
+      enum:
         - LLAMADA
         - CORREO
         - REUNION
-      - DEMO
+        - DEMO
         - WHATSAPP
         - OTRO
 
