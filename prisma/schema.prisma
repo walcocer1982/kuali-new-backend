@@ -44,27 +44,56 @@ model Lead {
   utmCampaign     String?
   utmMedium       String?
   utmSource       String?
+  whatsappId      String?      @unique
+  lastMessageAt   DateTime?
   contactLogs     Contact_Log[]
   interactions    Interaction[]
   company         Company       @relation(fields: [companyId], references: [id])
 
   @@index([status])
   @@index([firstName, lastName])
+  @@index([phoneNumber])
+  @@index([whatsappId])
+}
+
+model Product {
+  id                   String               @id @default(uuid())
+  name                 String               @unique
+  description          String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  templates            Template[]
+  templateInteractions TemplateInteraction[]
 }
 
 model Template {
   id          String        @id @default(uuid())
   title       String
   body        String
+  productId   String?
+  type        TemplateType?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   stepsJson   Json?         @map("steps")
   tags        String[]      @default([])
   contactLogs Contact_Log[]
+  product     Product?      @relation(fields: [productId], references: [id])
 
   @@index([title])
   @@index([tags])
   @@map("Template")
+}
+
+model TemplateInteraction {
+  id        String      @id @default(uuid())
+  productId String
+  type      TemplateType
+  notes     String
+  result    String
+  examples  Json        @default("[]")
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  product   Product     @relation(fields: [productId], references: [id])
 }
 
 model Contact_Log {
@@ -82,40 +111,58 @@ model Contact_Log {
 }
 
 model Interaction {
-  id          String          @id @default(uuid())
-  leadId      String
-  type        InteractionType
-  notes       String?
-  result      String?
-  scheduledAt DateTime?
-  completedAt DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  lead        Lead            @relation(fields: [leadId], references: [id])
+  id             String          @id @default(uuid())
+  leadId         String
+  type           InteractionType
+  notes          String?
+  result         String?
+  scheduledAt    DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  whatsappStatus String?
+  messageId      String?
+  lead           Lead            @relation(fields: [leadId], references: [id])
+
+  @@index([leadId])
+  @@index([scheduledAt])
+  @@index([type])
 }
 
 enum LeadStatus {
-  NUEVO
-  CONTACTADO
-  CALIFICADO
-  OPORTUNIDAD
-  CLIENTE
-  PERDIDO
+  NUEVO       @map("NUEVO")
+  CONTACTADO  @map("CONTACTADO")
+  CALIFICADO  @map("CALIFICADO")
+  CLIENTE     @map("CLIENTE")
+  PERDIDO     @map("PERDIDO")
 }
 
 enum ContactStatus {
-  PENDIENTE
-  ENVIADO
-  ENTREGADO
-  LEIDO
-  RESPONDIDO
-  FALLIDO
+  PENDIENTE   @map("PENDIENTE")
+  ENVIADO     @map("ENVIADO")
+  ENTREGADO   @map("ENTREGADO")
+  LEIDO       @map("LEIDO")
+  RESPONDIDO  @map("RESPONDIDO")
+  FALLIDO     @map("FALLIDO")
 }
 
 enum InteractionType {
-  CALL
-  EMAIL
-  MEETING
-  DEMO
-  OTHER
+  CALL        @map("LLAMADA")
+  EMAIL       @map("CORREO")
+  MEETING     @map("REUNION")
+  DEMO        @map("DEMO")
+  WHATSAPP    @map("WHATSAPP")
+  OTHER       @map("OTRO")
+}
+
+enum TemplateType {
+  WELCOME     @map("BIENVENIDA")
+  FOLLOW_UP   @map("SEGUIMIENTO")
+  CLOSING     @map("CIERRE")
+}
+
+enum ProductType {
+  CV_SCANNER              @map("CV_SCANNER")
+  PEOPLE_MANAGEMENT       @map("ADMIN_PERSONAS")
+  AUTOMATED_CALLS         @map("LLAMADAS_AUTOMATIZADAS")
 }

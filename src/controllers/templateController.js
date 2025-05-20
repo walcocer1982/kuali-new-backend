@@ -3,7 +3,11 @@ const prisma = require('../lib/prisma');
 // Obtener todas las plantillas
 exports.getAllTemplates = async (req, res) => {
   try {
-    const templates = await prisma.template.findMany();
+    const templates = await prisma.template.findMany({
+      include: {
+        product: true
+      }
+    });
     res.json(templates);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener las plantillas' });
@@ -14,7 +18,10 @@ exports.getAllTemplates = async (req, res) => {
 exports.getTemplateById = async (req, res) => {
   try {
     const template = await prisma.template.findUnique({
-      where: { id: req.params.id }
+      where: { id: req.params.id },
+      include: {
+        product: true
+      }
     });
     if (!template) {
       return res.status(404).json({ error: 'Plantilla no encontrada' });
@@ -25,10 +32,61 @@ exports.getTemplateById = async (req, res) => {
   }
 };
 
+// Obtener plantillas por producto
+exports.getTemplatesByProduct = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    
+    const templates = await prisma.template.findMany({
+      where: { productId },
+      include: {
+        product: true
+      }
+    });
+    
+    res.json(templates);
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Error al obtener las plantillas por producto',
+      details: error.message  
+    });
+  }
+};
+
+// Obtener plantillas por tipo
+exports.getTemplatesByType = async (req, res) => {
+  try {
+    const { type } = req.params;
+    
+    // Verificar que el tipo sea válido
+    const validTypes = ['WELCOME', 'FOLLOW_UP', 'CLOSING'];
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({
+        error: 'Tipo de plantilla inválido',
+        message: 'Los tipos válidos son: WELCOME, FOLLOW_UP, CLOSING'
+      });
+    }
+    
+    const templates = await prisma.template.findMany({
+      where: { type },
+      include: {
+        product: true
+      }
+    });
+    
+    res.json(templates);
+  } catch (error) {
+    res.status(500).json({ 
+      error: 'Error al obtener las plantillas por tipo',
+      details: error.message  
+    });
+  }
+};
+
 // Crear una nueva plantilla con validación de steps
 exports.createTemplate = async (req, res) => {
   try {
-    const { title, body, stepsJson, tags } = req.body;
+    const { title, body, stepsJson, tags, productId, type } = req.body;
     
     // Validación del template básico
     if (!title || !body) {
@@ -40,6 +98,34 @@ exports.createTemplate = async (req, res) => {
       title, 
       body
     };
+    
+    // Añadir productId si está presente
+    if (productId) {
+      // Verificar que el producto exista
+      const product = await prisma.product.findUnique({
+        where: { id: productId }
+      });
+      
+      if (!product) {
+        return res.status(400).json({ error: 'El producto especificado no existe.' });
+      }
+      
+      data.productId = productId;
+    }
+    
+    // Añadir type si está presente
+    if (type) {
+      // Verificar que el tipo sea válido
+      const validTypes = ['WELCOME', 'FOLLOW_UP', 'CLOSING'];
+      if (!validTypes.includes(type)) {
+        return res.status(400).json({
+          error: 'Tipo de plantilla inválido',
+          message: 'Los tipos válidos son: WELCOME, FOLLOW_UP, CLOSING'
+        });
+      }
+      
+      data.type = type;
+    }
     
     // Añadir tags si están presentes
     if (tags && Array.isArray(tags)) {
@@ -83,7 +169,12 @@ exports.createTemplate = async (req, res) => {
     }
 
     // Crear el template con todos los datos
-    const newTemplate = await prisma.template.create({ data });
+    const newTemplate = await prisma.template.create({ 
+      data,
+      include: {
+        product: true
+      }
+    });
     
     res.status(201).json(newTemplate);
   } catch (error) {
@@ -98,7 +189,7 @@ exports.createTemplate = async (req, res) => {
 // Actualizar una plantilla con validación de steps
 exports.updateTemplate = async (req, res) => {
   try {
-    const { title, body, stepsJson, tags } = req.body;
+    const { title, body, stepsJson, tags, productId, type } = req.body;
     
     // Verificar que el template exista
     const existingTemplate = await prisma.template.findUnique({
@@ -115,6 +206,44 @@ exports.updateTemplate = async (req, res) => {
     // Añadir campos solo si están definidos
     if (title !== undefined) data.title = title;
     if (body !== undefined) data.body = body;
+    
+    // Añadir productId si está presente
+    if (productId !== undefined) {
+      // Si se envía null, eliminar la relación
+      if (productId === null) {
+        data.productId = null;
+      } else {
+        // Verificar que el producto exista
+        const product = await prisma.product.findUnique({
+          where: { id: productId }
+        });
+        
+        if (!product) {
+          return res.status(400).json({ error: 'El producto especificado no existe.' });
+        }
+        
+        data.productId = productId;
+      }
+    }
+    
+    // Añadir type si está presente
+    if (type !== undefined) {
+      // Si se envía null, eliminar el tipo
+      if (type === null) {
+        data.type = null;
+      } else {
+        // Verificar que el tipo sea válido
+        const validTypes = ['WELCOME', 'FOLLOW_UP', 'CLOSING'];
+        if (!validTypes.includes(type)) {
+          return res.status(400).json({
+            error: 'Tipo de plantilla inválido',
+            message: 'Los tipos válidos son: WELCOME, FOLLOW_UP, CLOSING'
+          });
+        }
+        
+        data.type = type;
+      }
+    }
     
     // Añadir tags si están presentes
     if (tags !== undefined) {
@@ -163,6 +292,9 @@ exports.updateTemplate = async (req, res) => {
     const updatedTemplate = await prisma.template.update({
       where: { id: req.params.id },
       data,
+      include: {
+        product: true
+      }
     });
     
     res.json(updatedTemplate);
@@ -248,7 +380,11 @@ exports.getTemplateSteps = async (req, res) => {
 // Actualizar los steps de una plantilla
 exports.updateTemplateSteps = async (req, res) => {
   try {
-    const { stepsJson } = req.body;
+    const { steps } = req.body;
+    
+    if (!steps || !Array.isArray(steps)) {
+      return res.status(400).json({ error: 'Se requiere un array de steps.' });
+    }
     
     // Verificar que el template exista
     const existingTemplate = await prisma.template.findUnique({
@@ -259,53 +395,40 @@ exports.updateTemplateSteps = async (req, res) => {
       return res.status(404).json({ error: 'Plantilla no encontrada' });
     }
     
-    // Validar y procesar stepsJson
-    if (!stepsJson) {
-      return res.status(400).json({ error: 'stepsJson es requerido' });
-    }
-
-    try {
-      const stepsData = typeof stepsJson === 'string' ? JSON.parse(stepsJson) : stepsJson;
-      
-      if (!Array.isArray(stepsData)) {
-        return res.status(400).json({ error: 'stepsJson debe ser un array.' });
+    // Validar estructura de cada step
+    for (let i = 0; i < steps.length; i++) {
+      const item = steps[i];
+      if (
+        !item ||
+        typeof item !== 'object' ||
+        typeof item.step !== 'string' ||
+        typeof item.salesperson_response !== 'string' ||
+        typeof item.client_response !== 'string'
+      ) {
+        return res.status(400).json({ 
+          error: `Paso inválido en índice ${i}`, 
+          message: 'Cada paso debe tener los campos: step, salesperson_response y client_response'
+        });
       }
-      
-      // Validar estructura de cada step
-      for (let i = 0; i < stepsData.length; i++) {
-        const item = stepsData[i];
-        if (
-          !item ||
-          typeof item !== 'object' ||
-          typeof item.step !== 'string' ||
-          typeof item.salesperson_response !== 'string' ||
-          typeof item.client_response !== 'string'
-        ) {
-          return res.status(400).json({ 
-            error: `Paso inválido en índice ${i}`, 
-            message: 'Cada paso debe tener los campos: step, salesperson_response y client_response'
-          });
-        }
-      }
-      
-      // Actualizar los steps del template
-      const updatedTemplate = await prisma.template.update({
-        where: { id: req.params.id },
-        data: { stepsJson: stepsData },
-      });
-      
-      res.json(updatedTemplate);
-    } catch (e) {
-      return res.status(400).json({ 
-        error: 'Formato JSON inválido', 
-        message: 'El campo stepsJson debe ser un JSON válido'
-      });
     }
+    
+    // Actualizar solo los steps
+    const updatedTemplate = await prisma.template.update({
+      where: { id: req.params.id },
+      data: { stepsJson: steps },
+      select: {
+        id: true,
+        title: true,
+        stepsJson: true
+      }
+    });
+    
+    res.json(updatedTemplate);
   } catch (error) {
-    console.error('Error al actualizar steps del template:', error);
+    console.error('Error al actualizar steps:', error);
     res.status(500).json({ 
-      error: 'Error al actualizar los steps de la plantilla', 
-      details: error.message 
+      error: 'Error al actualizar los steps de la plantilla',
+      details: error.message
     });
   }
 };

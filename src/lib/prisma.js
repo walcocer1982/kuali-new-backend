@@ -1,21 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 
-const prisma = global.prisma || new PrismaClient({
-  log: ['query', 'error', 'warn'],
-  errorFormat: 'pretty',
-  datasources: {
-    db: {
-      url: process.env.DATABASE_URL
-    }
-  },
-  __internal: {
-    engine: {
-      connectionTimeout: 60000,    // 60 segundos
-      connectionLimit: 10,         // Límite de conexiones concurrentes
-      queueLimit: 15              // Cola para manejar picos de tráfico
-    }
-  }
-});
+const prisma = new PrismaClient();
 
 // Middleware para logging y manejo de errores
 prisma.$use(async (params, next) => {
@@ -62,11 +47,6 @@ async function verifyConnection() {
     console.error('[Prisma] ❌ Error al establecer conexión:', error);
     throw error;
   }
-}
-
-// Solo en desarrollo, asignar a global
-if (process.env.NODE_ENV === 'development') {
-  global.prisma = prisma;
 }
 
 // Verificar conexión al iniciar
