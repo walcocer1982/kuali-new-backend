@@ -1,4 +1,5 @@
-const prisma = require('../lib/prisma');
+const { PrismaClient, TemplateType } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 // Obtener todas las plantillas
 exports.getAllTemplates = async (req, res) => {
@@ -101,13 +102,14 @@ exports.createTemplate = async (req, res) => {
       });
     }
 
-    // Validación del tipo
-    const validTypes = ['WELCOME', 'FOLLOW_UP', 'CLOSING'];
+    // Validación del tipo usando el enum de Prisma
+    const validTypes = Object.values(TemplateType);
     if (!validTypes.includes(type)) {
       return res.status(400).json({
         error: 'Tipo de plantilla inválido',
         message: `Los tipos válidos son: ${validTypes.join(', ')}`,
-        providedType: type
+        providedType: type,
+        validTypes: validTypes
       });
     }
 
@@ -115,7 +117,7 @@ exports.createTemplate = async (req, res) => {
     const templateData = { 
       title, 
       body,
-      type
+      type: type // Aseguramos que el type se incluya en el objeto de creación
     };
     
     // Validación y asignación de productId
@@ -182,7 +184,7 @@ exports.createTemplate = async (req, res) => {
       }
     }
 
-    // Crear el template
+    // Crear el template usando Prisma
     const newTemplate = await prisma.template.create({ 
       data: templateData,
       include: {
@@ -193,6 +195,14 @@ exports.createTemplate = async (req, res) => {
     res.status(201).json(newTemplate);
   } catch (error) {
     console.error('Error al crear template:', error);
+    // Mejorar el manejo de errores de Prisma
+    if (error.code === 'P2002') {
+      return res.status(400).json({
+        error: 'Error de validación',
+        message: 'Ya existe una plantilla con estos datos',
+        details: error.meta
+      });
+    }
     res.status(500).json({ 
       error: 'Error interno',
       message: 'Error al crear la plantilla',
