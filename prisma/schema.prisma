@@ -68,16 +68,16 @@ model Product {
 
 model Template {
   id          String        @id @default(uuid())
-  title       String
-  body        String
-  productId   String?
-  type        TemplateType?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  stepsJson   Json?         @map("steps")
-  tags        String[]      @default([])
-  contactLogs Contact_Log[]
-  product     Product?      @relation(fields: [productId], references: [id])
+  title       String       /// Título de la plantilla
+  body        String       /// Contenido principal de la plantilla
+  productId   String?      /// ID del producto asociado (opcional)
+  type        TemplateType /// Tipo de plantilla (WELCOME, FOLLOW_UP, CLOSING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  stepsJson   Json?        @map("steps") /// Pasos de la plantilla en formato JSON (opcional)
+  tags        String[]     @default([])  /// Etiquetas para categorizar la plantilla
+  contactLogs Contact_Log[] /// Registros de contacto usando esta plantilla
+  product     Product?     @relation(fields: [productId], references: [id])
 
   @@index([title])
   @@index([tags])
@@ -156,9 +156,9 @@ enum InteractionType {
 }
 
 enum TemplateType {
-  WELCOME     @map("BIENVENIDA")
-  FOLLOW_UP   @map("SEGUIMIENTO")
-  CLOSING     @map("CIERRE")
+  WELCOME     @map("BIENVENIDA")   /// Plantilla de bienvenida para nuevos leads
+  FOLLOW_UP   @map("SEGUIMIENTO")  /// Plantilla de seguimiento para leads existentes
+  CLOSING     @map("CIERRE")       /// Plantilla para cerrar ventas
 }
 
 enum ProductType {
