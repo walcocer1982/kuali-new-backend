@@ -103,13 +103,12 @@ exports.createTemplate = async (req, res) => {
     }
 
     // Validación del tipo usando el enum de Prisma
-    const validTypes = Object.values(TemplateType);
-    if (!validTypes.includes(type)) {
+    if (!type || !TemplateType[type]) {
       return res.status(400).json({
         error: 'Tipo de plantilla inválido',
-        message: `Los tipos válidos son: ${validTypes.join(', ')}`,
+        message: `Los tipos válidos son: ${Object.keys(TemplateType).join(', ')}`,
         providedType: type,
-        validTypes: validTypes
+        validTypes: Object.keys(TemplateType)
       });
     }
 
@@ -117,7 +116,7 @@ exports.createTemplate = async (req, res) => {
     const templateData = { 
       title, 
       body,
-      type
+      type: TemplateType[type]
     };
     
     // Validación y asignación de productId
