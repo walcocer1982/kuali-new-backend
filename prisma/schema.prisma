@@ -74,7 +74,6 @@ model Template {
   type        TemplateType /// Tipo de plantilla (WELCOME, FOLLOW_UP, CLOSING)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  stepsJson   Json?        @map("steps") /// Pasos de la plantilla en formato JSON (opcional)
   tags        String[]     @default([])  /// Etiquetas para categorizar la plantilla
   contactLogs Contact_Log[] /// Registros de contacto usando esta plantilla
   product     Product?     @relation(fields: [productId], references: [id])

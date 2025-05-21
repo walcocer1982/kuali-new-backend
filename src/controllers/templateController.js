@@ -84,10 +84,10 @@ exports.getTemplatesByType = async (req, res) => {
   }
 };
 
-// Crear una nueva plantilla con validación de steps
+// Crear una nueva plantilla
 exports.createTemplate = async (req, res) => {
   try {
-    const { title, body, stepsJson, tags, productId, type } = req.body;
+    const { title, body, tags, productId, type } = req.body;
     
     // Validación de campos requeridos
     if (!title || !body || !type) {
@@ -117,7 +117,7 @@ exports.createTemplate = async (req, res) => {
     const templateData = { 
       title, 
       body,
-      type: type // Aseguramos que el type se incluya en el objeto de creación
+      type
     };
     
     // Validación y asignación de productId
@@ -148,41 +148,6 @@ exports.createTemplate = async (req, res) => {
       }
       templateData.tags = tags;
     }
-    
-    // Validación y procesamiento de stepsJson
-    if (stepsJson !== undefined) {
-      try {
-        const stepsData = typeof stepsJson === 'string' ? JSON.parse(stepsJson) : stepsJson;
-        
-        if (!Array.isArray(stepsData)) {
-          return res.status(400).json({
-            error: 'Formato inválido',
-            message: 'stepsJson debe ser un array de pasos',
-            providedStepsJson: stepsJson
-          });
-        }
-        
-        // Validar estructura de cada step
-        for (const [index, step] of stepsData.entries()) {
-          if (!step?.step || !step?.salesperson_response || !step?.client_response) {
-            return res.status(400).json({ 
-              error: 'Estructura inválida',
-              message: `El paso ${index + 1} debe tener los campos: step, salesperson_response y client_response`,
-              invalidStep: step
-            });
-          }
-        }
-        
-        templateData.stepsJson = stepsData;
-      } catch (e) {
-        return res.status(400).json({ 
-          error: 'JSON inválido',
-          message: 'El campo stepsJson debe ser un JSON válido',
-          details: e.message,
-          providedStepsJson: stepsJson
-        });
-      }
-    }
 
     // Crear el template usando Prisma
     const newTemplate = await prisma.template.create({ 
@@ -195,7 +160,6 @@ exports.createTemplate = async (req, res) => {
     res.status(201).json(newTemplate);
   } catch (error) {
     console.error('Error al crear template:', error);
-    // Mejorar el manejo de errores de Prisma
     if (error.code === 'P2002') {
       return res.status(400).json({
         error: 'Error de validación',
