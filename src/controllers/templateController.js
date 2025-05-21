@@ -88,89 +88,103 @@ exports.createTemplate = async (req, res) => {
   try {
     const { title, body, stepsJson, tags, productId, type } = req.body;
     
-    // Validación del template básico
-    if (!title || !body) {
-      return res.status(400).json({ error: 'Los campos title y body son obligatorios.' });
+    // Validación de campos requeridos
+    if (!title || !body || !type) {
+      return res.status(400).json({ 
+        error: 'Campos requeridos faltantes',
+        details: {
+          title: !title ? 'El título es requerido' : null,
+          body: !body ? 'El cuerpo es requerido' : null,
+          type: !type ? 'El tipo de plantilla es requerido' : null
+        },
+        message: 'Los campos title, body y type son obligatorios.'
+      });
+    }
+
+    // Validación del tipo
+    const validTypes = ['WELCOME', 'FOLLOW_UP', 'CLOSING'];
+    if (!validTypes.includes(type)) {
+      return res.status(400).json({
+        error: 'Tipo de plantilla inválido',
+        message: `Los tipos válidos son: ${validTypes.join(', ')}`,
+        providedType: type
+      });
     }
 
     // Objeto base para crear el template
-    const data = { 
+    const templateData = { 
       title, 
-      body
+      body,
+      type
     };
     
-    // Añadir productId si está presente
+    // Validación y asignación de productId
     if (productId) {
-      // Verificar que el producto exista
       const product = await prisma.product.findUnique({
         where: { id: productId }
       });
       
       if (!product) {
-        return res.status(400).json({ error: 'El producto especificado no existe.' });
-      }
-      
-      data.productId = productId;
-    }
-    
-    // Añadir type si está presente
-    if (type) {
-      // Verificar que el tipo sea válido
-      const validTypes = ['WELCOME', 'FOLLOW_UP', 'CLOSING'];
-      if (!validTypes.includes(type)) {
-        return res.status(400).json({
-          error: 'Tipo de plantilla inválido',
-          message: 'Los tipos válidos son: WELCOME, FOLLOW_UP, CLOSING'
+        return res.status(400).json({ 
+          error: 'Producto no encontrado',
+          message: 'El producto especificado no existe en la base de datos.',
+          providedProductId: productId
         });
       }
       
-      data.type = type;
+      templateData.productId = productId;
     }
     
-    // Añadir tags si están presentes
-    if (tags && Array.isArray(tags)) {
-      data.tags = tags;
+    // Validación y asignación de tags
+    if (tags !== undefined) {
+      if (!Array.isArray(tags)) {
+        return res.status(400).json({
+          error: 'Formato inválido',
+          message: 'El campo tags debe ser un array de strings',
+          providedTags: tags
+        });
+      }
+      templateData.tags = tags;
     }
     
-    // Validar y procesar stepsJson si está presente
+    // Validación y procesamiento de stepsJson
     if (stepsJson !== undefined) {
-      // Validar que sea un array o un objeto JSON válido
       try {
         const stepsData = typeof stepsJson === 'string' ? JSON.parse(stepsJson) : stepsJson;
         
         if (!Array.isArray(stepsData)) {
-          return res.status(400).json({ error: 'stepsJson debe ser un array.' });
+          return res.status(400).json({
+            error: 'Formato inválido',
+            message: 'stepsJson debe ser un array de pasos',
+            providedStepsJson: stepsJson
+          });
         }
         
         // Validar estructura de cada step
-        for (let i = 0; i < stepsData.length; i++) {
-          const item = stepsData[i];
-          if (
-            !item ||
-            typeof item !== 'object' ||
-            typeof item.step !== 'string' ||
-            typeof item.salesperson_response !== 'string' ||
-            typeof item.client_response !== 'string'
-          ) {
+        for (const [index, step] of stepsData.entries()) {
+          if (!step?.step || !step?.salesperson_response || !step?.client_response) {
             return res.status(400).json({ 
-              error: `Paso inválido en índice ${i}`, 
-              message: 'Cada paso debe tener los campos: step, salesperson_response y client_response'
+              error: 'Estructura inválida',
+              message: `El paso ${index + 1} debe tener los campos: step, salesperson_response y client_response`,
+              invalidStep: step
             });
           }
         }
         
-        data.stepsJson = stepsData;
+        templateData.stepsJson = stepsData;
       } catch (e) {
         return res.status(400).json({ 
-          error: 'Formato JSON inválido', 
-          message: 'El campo stepsJson debe ser un JSON válido'
+          error: 'JSON inválido',
+          message: 'El campo stepsJson debe ser un JSON válido',
+          details: e.message,
+          providedStepsJson: stepsJson
         });
       }
     }
 
-    // Crear el template con todos los datos
+    // Crear el template
     const newTemplate = await prisma.template.create({ 
-      data,
+      data: templateData,
       include: {
         product: true
       }
@@ -180,7 +194,8 @@ exports.createTemplate = async (req, res) => {
   } catch (error) {
     console.error('Error al crear template:', error);
     res.status(500).json({ 
-      error: 'Error al crear la plantilla', 
+      error: 'Error interno',
+      message: 'Error al crear la plantilla',
       details: error.message 
     });
   }
